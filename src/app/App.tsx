@@ -1,12 +1,17 @@
-import { useSetRecoilState } from "recoil";
+import { useEffect, useState } from "react";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import { userState } from "../services/user";
+import { notificationState } from "../services/notifications";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase";
 import { Layout } from "../components/layout/Layout";
 import { Outlet } from "react-router-dom";
+import { Alert, Snackbar } from "@mui/material";
 
 function App() {
   const setUser = useSetRecoilState(userState);
+  const notification = useRecoilValue(notificationState);
+  const [notificationIsOpen, setNotificationIsOpen] = useState(false);
 
   onAuthStateChanged(auth, (newUser) => {
     if (newUser) {
@@ -17,9 +22,30 @@ function App() {
     }
   });
 
+  useEffect(() => {
+    if (notification.message) {
+      setNotificationIsOpen(true);
+    }
+  }, [notification]);
+
   return (
     <Layout>
       <Outlet />
+      <Snackbar
+        open={notificationIsOpen}
+        autoHideDuration={5000}
+        onClose={() => setNotificationIsOpen(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <Alert
+          severity={notification.severity}
+          variant="filled"
+          sx={{ width: "100%" }}
+          onClose={() => setNotificationIsOpen(false)}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </Layout>
   );
 }
