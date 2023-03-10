@@ -1,4 +1,9 @@
 import { useState } from "react";
+import { useRecoilValue } from "recoil";
+import { userState } from "../../services/user";
+import { signOut } from "firebase/auth";
+import { auth } from "../../app/firebase";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   AppBar,
   Box,
@@ -13,15 +18,25 @@ import {
   Toolbar,
   Typography,
 } from "@mui/material";
-import { NavLink } from "react-router-dom";
 import { Menu } from "@mui/icons-material";
 
 const navItems = [
-  { label: "Home", ref: "/" },
-  { label: "Contact", ref: "/contact" },
+  { label: "Home", path: "/" },
+  { label: "Contact", path: "/contact" },
 ];
+
 export const NavBar = () => {
+  const navigate = useNavigate();
+  const user = useRecoilValue(userState);
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const handleLogout = async () => {
+    await signOut(auth);
+  };
+
+  const handleLinkClick = (path: string) => {
+    navigate(path);
+  };
 
   const handleDrawerToggle = () => {
     setDrawerOpen((prevValue) => !prevValue);
@@ -35,14 +50,17 @@ export const NavBar = () => {
       <Divider />
       <List>
         {navItems.map((item) => (
-          <NavLink key={item.ref} to={item.ref}>
-            <ListItem key={item.label} disablePadding>
-              <ListItemButton sx={{ textAlign: "center" }}>
-                <ListItemText primary={item.label} />
-              </ListItemButton>
-            </ListItem>
-          </NavLink>
+          <ListItem key={item.label} disablePadding>
+            <ListItemButton onClick={() => handleLinkClick(item.path)} sx={{ textAlign: "center" }}>
+              <ListItemText primary={item.label} />
+            </ListItemButton>
+          </ListItem>
         ))}
+        <ListItem key="logout" disablePadding>
+          <ListItemButton onClick={handleLogout} sx={{ textAlign: "center" }}>
+            <ListItemText primary="Uitloggen" />
+          </ListItemButton>
+        </ListItem>
       </List>
     </Box>
   );
@@ -51,15 +69,17 @@ export const NavBar = () => {
     <>
       <AppBar component="nav" position="sticky">
         <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="end"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: "none" } }}
-          >
-            <Menu />
-          </IconButton>
+          {user && (
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="end"
+              onClick={handleDrawerToggle}
+              sx={{ mr: 2, display: { sm: "none" } }}
+            >
+              <Menu />
+            </IconButton>
+          )}
           <Typography
             variant="h6"
             component="div"
@@ -70,15 +90,22 @@ export const NavBar = () => {
           >
             Boerderij bloem CMS
           </Typography>
-          <Box sx={{ display: { xs: "none", sm: "block" } }}>
-            {navItems.map((item) => (
-              <NavLink key={item.ref} to={item.ref}>
-                <Button key={item.label} sx={{ color: "#fff" }}>
-                  {item.label}
+          {user && (
+            <Box sx={{ display: { xs: "none", sm: "block" } }}>
+              {navItems.map((item) => (
+                <NavLink key={item.path} to={item.path}>
+                  <Button key={item.label} sx={{ color: "#fff" }}>
+                    {item.label}
+                  </Button>
+                </NavLink>
+              ))}
+              {user && (
+                <Button onClick={handleLogout} key="logout" color="inherit">
+                  Uitloggen
                 </Button>
-              </NavLink>
-            ))}
-          </Box>
+              )}
+            </Box>
+          )}
         </Toolbar>
       </AppBar>
 
