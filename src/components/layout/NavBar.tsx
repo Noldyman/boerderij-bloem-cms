@@ -100,9 +100,12 @@ export const NavBar = () => {
                 </NavLink>
               ))}
               {user && (
-                <Button onClick={handleLogout} key="logout" color="inherit">
-                  Uitloggen
-                </Button>
+                <>
+                  <span style={{ margin: "0px 20px" }}>|</span>
+                  <Button onClick={handleLogout} key="logout" color="inherit">
+                    Uitloggen
+                  </Button>
+                </>
               )}
             </Box>
           )}

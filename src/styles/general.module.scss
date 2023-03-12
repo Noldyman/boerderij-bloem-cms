@@ -13,13 +13,12 @@
   text-align: center;
 }
 
-.textErea {
-  width: 100%;
-  min-height: 100px;
+.card {
+  margin-top: 20px;
+  padding: 20px;
 }
 
-.textEreaBlock {
-  margin-top: 20px;
+.textEditBlock {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -30,4 +29,23 @@
   justify-content: end;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.inputDialog {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.list {
+  border: solid 1px rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  padding: 0px;
 }

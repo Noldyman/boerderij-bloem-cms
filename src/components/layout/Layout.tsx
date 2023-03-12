@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { CssBaseline } from "@mui/material";
 import { Footer } from "./Footer";
 import { NavBar } from "./NavBar";
-import styles from "./styles.module.scss";
+import styles from "./layout.module.scss";
 
 interface Props {
   children: ReactNode;

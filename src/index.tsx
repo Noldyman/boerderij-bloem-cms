@@ -4,7 +4,7 @@ import { RecoilRoot } from "recoil";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "./utils/ProtectedRoute";
 import App from "./app/App";
-import { Home } from "./pages/Home";
+import { Home } from "./pages/home/Home";
 import { Contact } from "./pages/Contact";
 import { NotFound } from "./pages/NotFound";
 import { Login } from "./pages/Login";
