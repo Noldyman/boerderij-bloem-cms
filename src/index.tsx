@@ -4,10 +4,12 @@ import { RecoilRoot } from "recoil";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "./utils/ProtectedRoute";
 import App from "./app/App";
+import { Login } from "./pages/Login";
+import { ResetPassword } from "./pages/ResetPassword";
 import { Home } from "./pages/home/Home";
 import { Contact } from "./pages/Contact";
+import { Account } from "./pages/Account";
 import { NotFound } from "./pages/NotFound";
-import { Login } from "./pages/Login";
 import reportWebVitals from "./reportWebVitals";
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
@@ -19,10 +21,12 @@ root.render(
           <Route path="/" element={<App />}>
             <Route element={<ProtectedRoute userForbidden />}>
               <Route path="login" element={<Login />} />
+              <Route path="reset-password" element={<ResetPassword />} />
             </Route>
             <Route element={<ProtectedRoute userRequired />}>
               <Route index element={<Home />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/account" element={<Account />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Route>

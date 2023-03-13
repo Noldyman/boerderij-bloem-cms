@@ -18,13 +18,20 @@
   padding: 20px;
 }
 
-.textEditBlock {
+.smallCard {
+  margin: auto;
+  max-width: 500px;
+  margin-top: 20px;
+  padding: 20px;
+}
+
+.cardContent {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.blockActions {
+.cardActions {
   display: flex;
   justify-content: end;
   gap: 10px;

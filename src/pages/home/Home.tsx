@@ -143,10 +143,10 @@ export const Home = () => {
   return (
     <PageCard title="Home">
       <Card className={styles.card} variant="outlined">
-        <div className={styles.textEditBlock}>
+        <div className={styles.cardContent}>
           <Typography variant="h6">Introductietekst</Typography>
           <MarkdownEditor value={introText.text} onChange={handleIntroTextChange} />
-          <div className={styles.blockActions}>
+          <div className={styles.cardActions}>
             <Button onClick={handleClearIntroText} variant="outlined">
               Leeg veld
             </Button>
@@ -161,13 +161,13 @@ export const Home = () => {
         </div>
       </Card>
       <Card className={styles.card} variant="outlined">
-        <div className={styles.textEditBlock}>
+        <div className={styles.cardContent}>
           <Typography variant="h6">Nieuwsitems</Typography>
           <Typography>Voeg een nieuwsitem toe, of klik op een item om het te bewerken.</Typography>
           {newsitems.length > 0 && (
             <NewsitemList newsitems={newsitems} onEdit={handleEditNewsitem} />
           )}
-          <div className={styles.blockActions}>
+          <div className={styles.cardActions}>
             <Button onClick={handleOpenNewsItemDialog} variant="contained">
               Nieuws item toevoegen
             </Button>

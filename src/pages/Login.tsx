@@ -2,7 +2,7 @@ import { useState, ChangeEvent } from "react";
 import { Button, Card, TextField, Typography } from "@mui/material";
 import { auth } from "../app/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import styles from "../styles/general.module.scss";
 
 const initialInput = {
@@ -65,6 +65,11 @@ export const Login = () => {
           Email adres of wachtwoord onjuist.
         </Typography>
       )}
+      <Link to="/reset-password">
+        <Typography align="center" color="primary">
+          Wachtwoord vergeten
+        </Typography>
+      </Link>
     </Card>
   );
 };

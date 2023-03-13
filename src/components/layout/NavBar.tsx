@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useRecoilValue } from "recoil";
 import { userState } from "../../services/user";
-import { signOut } from "firebase/auth";
-import { auth } from "../../app/firebase";
+
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   AppBar,
@@ -30,10 +29,6 @@ export const NavBar = () => {
   const user = useRecoilValue(userState);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const handleLogout = async () => {
-    await signOut(auth);
-  };
-
   const handleLinkClick = (path: string) => {
     navigate(path);
   };
@@ -56,9 +51,9 @@ export const NavBar = () => {
             </ListItemButton>
           </ListItem>
         ))}
-        <ListItem key="logout" disablePadding>
-          <ListItemButton onClick={handleLogout} sx={{ textAlign: "center" }}>
-            <ListItemText primary="Uitloggen" />
+        <ListItem key="account" disablePadding>
+          <ListItemButton onClick={() => handleLinkClick("/account")} sx={{ textAlign: "center" }}>
+            <ListItemText primary="Account" />
           </ListItemButton>
         </ListItem>
       </List>
@@ -102,8 +97,8 @@ export const NavBar = () => {
               {user && (
                 <>
                   <span style={{ margin: "0px 20px" }}>|</span>
-                  <Button onClick={handleLogout} key="logout" color="inherit">
-                    Uitloggen
+                  <Button onClick={() => handleLinkClick("/account")} key="account" color="inherit">
+                    Account
                   </Button>
                 </>
               )}
