@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSetRecoilState } from "recoil";
 import { notificationState } from "../../services/notifications";
-import { db } from "../../app/firebase";
+import { db, storage } from "../../app/firebase";
 import {
   addDoc,
   collection,
@@ -13,11 +13,12 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
+import { getDownloadURL, ref } from "firebase/storage";
+import { Button, Card, CircularProgress, Typography } from "@mui/material";
 import { PageCard } from "../../components/common/PageCard";
 import { NewsitemDialog } from "./NewsitemDialog";
 import { NewsitemList } from "./NewsitemList";
 import { MarkdownEditor } from "../../components/common/MarkdownEditor";
-import { Button, Card, Typography } from "@mui/material";
 import styles from "../../styles/general.module.scss";
 
 export interface Newsitem {
@@ -25,6 +26,7 @@ export interface Newsitem {
   title: string;
   date: Timestamp;
   message: string;
+  imageUrl?: string;
 }
 
 export const Home = () => {
@@ -32,9 +34,10 @@ export const Home = () => {
   const [introText, setIntroText] = useState({ id: "", text: "" });
   const [introTextLoading, setIntroTextLoading] = useState(false);
   const [newsitems, setNewitems] = useState<Newsitem[]>([]);
+  const [newsitemsLoading, setNewitemsLoading] = useState(false);
   const [newsItemDialogIsOpen, setNewsItemDialogIsOpen] = useState(false);
   const [editNewsitem, setEditNewsitem] = useState<Newsitem | undefined>();
-  const [newsitemsWasEdited, setNewsitemsWasEdited] = useState(true);
+  const [refreshNewsitems, setRefreshNewsitems] = useState(true);
 
   useEffect(() => {
     const fetchIntroText = async () => {
@@ -61,14 +64,29 @@ export const Home = () => {
 
   useEffect(() => {
     const fetchNewsitems = async () => {
+      setNewitemsLoading(true);
       try {
         const querySnapshot = await getDocs(
           query(collection(db, "newsitems"), orderBy("date", "desc"))
         );
         if (!querySnapshot.empty) {
-          const newNewsitems: Newsitem[] = querySnapshot.docs.map(
-            (doc) => ({ ...doc.data(), id: doc.id } as Newsitem)
+          const newNewsitems: Newsitem[] = await Promise.all(
+            querySnapshot.docs.map(async (doc) => {
+              let newsItem = { ...doc.data(), id: doc.id } as Newsitem;
+
+              const imgRef = ref(storage, "images/newsitems/" + doc.id);
+              await getDownloadURL(imgRef)
+                .then((link) => {
+                  newsItem = { ...newsItem, imageUrl: link };
+                })
+                .catch((err) => {
+                  if (!err.message.includes("storage/object-not-found")) throw Error(err);
+                });
+
+              return newsItem;
+            })
           );
+
           setNewitems(newNewsitems);
         } else {
           setNewitems([]);
@@ -80,13 +98,14 @@ export const Home = () => {
           severity: "error",
         });
       }
+      setNewitemsLoading(false);
     };
 
-    if (newsitemsWasEdited) {
-      setNewsitemsWasEdited(false);
+    if (refreshNewsitems) {
+      setRefreshNewsitems(false);
       fetchNewsitems();
     }
-  }, [newsitemsWasEdited, setNotification]);
+  }, [refreshNewsitems, setNotification]);
 
   const handleIntroTextChange = (input?: string) => {
     if (!input) return;
@@ -137,7 +156,7 @@ export const Home = () => {
   };
 
   const handleNewsitemsEdited = () => {
-    setNewsitemsWasEdited(true);
+    setRefreshNewsitems(true);
   };
 
   return (
@@ -164,9 +183,13 @@ export const Home = () => {
         <div className={styles.cardContent}>
           <Typography variant="h6">Nieuwsitems</Typography>
           <Typography>Voeg een nieuwsitem toe, of klik op een item om het te bewerken.</Typography>
-          {newsitems.length > 0 && (
+
+          {newsitemsLoading ? (
+            <CircularProgress />
+          ) : (
             <NewsitemList newsitems={newsitems} onEdit={handleEditNewsitem} />
           )}
+
           <div className={styles.cardActions}>
             <Button onClick={handleOpenNewsItemDialog} variant="contained">
               Nieuws item toevoegen

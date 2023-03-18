@@ -1,19 +1,36 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import { useSetRecoilState } from "recoil";
 import { notificationState } from "../../services/notifications";
-import { db } from "../../app/firebase";
+import { db, storage } from "../../app/firebase";
 import { addDoc, collection, deleteDoc, doc, updateDoc } from "firebase/firestore";
-import { Button, Dialog, TextField, Typography } from "@mui/material";
+import { deleteObject, ref, uploadBytes } from "firebase/storage";
+import {
+  Avatar,
+  Button,
+  Dialog,
+  IconButton,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { Delete, PhotoCamera } from "@mui/icons-material";
 import { MarkdownEditor } from "../../components/common/MarkdownEditor";
 import { Newsitem } from "./Home";
+import { validateNewsitem } from "../../validation/validateNewsitem";
 import { format } from "date-fns";
 import styles from "../../styles/general.module.scss";
-import { validateNewsitem } from "../../validation/validateNewsitem";
 
 interface ErrorObj {
   title?: string;
   date?: string;
   message?: string;
+}
+
+export interface NewImage {
+  name: string;
+  blob: Blob;
 }
 
 interface Props {
@@ -31,6 +48,8 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
   const [markdownInput, setMarkdownInput] = useState("");
   const [errors, setErrors] = useState<ErrorObj | undefined>();
   const [loading, setLoading] = useState(false);
+  const [newImage, setNewImage] = useState<NewImage | undefined>();
+  const [imageURL, setImageURL] = useState<string | undefined>(newsitem?.imageUrl);
 
   useEffect(() => {
     const getInitialInput = () => {
@@ -40,15 +59,19 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
           date: format(newsitem.date.toDate(), "yyyy-MM-dd"),
         });
         setMarkdownInput(newsitem.message);
+        if (newsitem.imageUrl) setImageURL(newsitem.imageUrl);
       }
     };
     getInitialInput();
   }, [newsitem]);
 
-  const handleClose = () => {
+  const handleClose = (edited?: boolean) => {
     setInput(initialInput);
     setMarkdownInput("");
     setErrors(undefined);
+    setImageURL(undefined);
+    setNewImage(undefined);
+    if (edited) onEdited();
     onClose();
   };
 
@@ -60,14 +83,31 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
     setMarkdownInput(input ? input : "");
   };
 
+  const handleAddImage = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const file = e.target.files[0];
+      const blob = new Blob([file]);
+      setNewImage({ name: file.name, blob: blob });
+    }
+  };
+
+  const handleDeleteImage = () => {
+    setImageURL(undefined);
+    setNewImage(undefined);
+  };
+
   const handleDelete = async (id: string) => {
     try {
       await deleteDoc(doc(db, "newsitems/" + id));
+      if (newImage || imageURL) {
+        const imgRef = ref(storage, "images/newsitems/" + id);
+        await deleteObject(imgRef).catch((err) => {
+          if (!err.message.includes("storage/object-not-found")) throw Error(err);
+        });
+      }
+
       setNotification({ message: "Het nieuwsitem is verwijderd", severity: "success" });
-      setInput(initialInput);
-      setMarkdownInput("");
-      onEdited();
-      onClose();
+      handleClose(true);
     } catch (error) {
       console.log(error);
       setNotification({
@@ -97,11 +137,18 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
         date: new Date(input.date),
         message: markdownInput,
       });
+
+      const imgRef = ref(storage, "images/newsitems/" + id);
+      if (newImage) {
+        await uploadBytes(imgRef, newImage.blob);
+      } else if (!imageURL) {
+        await deleteObject(imgRef).catch((err) => {
+          if (!err.message.includes("storage/object-not-found")) throw Error(err);
+        });
+      }
+
       setNotification({ message: "Het nieuwsitem is aangepast", severity: "success" });
-      setInput(initialInput);
-      setMarkdownInput("");
-      onEdited();
-      onClose();
+      handleClose(true);
     } catch (error) {
       console.log(error);
       setNotification({
@@ -127,16 +174,19 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
     }
 
     try {
-      await addDoc(collection(db, "newsitems"), {
+      const docRef = await addDoc(collection(db, "newsitems"), {
         title: input.title,
         date: new Date(input.date),
         message: markdownInput,
       });
+
+      if (newImage) {
+        const storageRef = ref(storage, "images/newsitems/" + docRef.id);
+        await uploadBytes(storageRef, newImage.blob);
+      }
+
       setNotification({ message: "Het nieuwsitem is toegevoegd", severity: "success" });
-      setInput(initialInput);
-      setMarkdownInput("");
-      onEdited();
-      onClose();
+      handleClose(true);
     } catch (error) {
       console.log(error);
       setNotification({
@@ -148,7 +198,7 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth>
+    <Dialog open={open} onClose={() => handleClose()} fullWidth>
       <div className={styles.inputDialog}>
         <Typography variant="h5">Nieuwsitem {newsitem ? "aanpassen" : "plaatsen"}</Typography>
         <TextField
@@ -175,10 +225,44 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
           helperText={errors?.date}
           onChange={handleInputChange}
         />
+        <Button
+          variant="contained"
+          component="label"
+          disabled={Boolean(newImage || imageURL)}
+          startIcon={<PhotoCamera />}
+        >
+          Afbeelding uploaden
+          <input accept=".jpg,.png" type="file" hidden onChange={handleAddImage} />
+        </Button>
+        {(newImage || imageURL) && (
+          <>
+            <ListItem>
+              {newImage && (
+                <>
+                  <ListItemAvatar>
+                    <Avatar alt="fail" src={URL.createObjectURL(newImage.blob)} />
+                  </ListItemAvatar>
+                  <ListItemText className={styles.listItemText} primary={newImage.name} />
+                </>
+              )}
+              {imageURL && (
+                <>
+                  <ListItemAvatar>
+                    <Avatar alt="fail" src={imageURL} />
+                  </ListItemAvatar>
+                  <ListItemText className={styles.listItemText} primary="Newsitem image" />
+                </>
+              )}
+              <IconButton onClick={handleDeleteImage}>
+                <Delete />
+              </IconButton>
+            </ListItem>
+          </>
+        )}
         <MarkdownEditor value={markdownInput} onChange={handleMarkdownInputChange} />
         {errors?.message && <Typography color="error">{errors.message}</Typography>}
         <div className={styles.dialogActions}>
-          <Button onClick={handleClose} variant="outlined">
+          <Button onClick={() => handleClose()} variant="outlined">
             Cancel
           </Button>
           {newsitem ? (

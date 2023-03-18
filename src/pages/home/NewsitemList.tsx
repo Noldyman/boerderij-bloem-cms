@@ -2,11 +2,13 @@ import { useState } from "react";
 import {
   List,
   ListItem,
-  ListItemIcon,
   ListItemButton,
   ListItemText,
   Divider,
   TablePagination,
+  ListItemAvatar,
+  Avatar,
+  Typography,
 } from "@mui/material";
 import { Newspaper } from "@mui/icons-material";
 import { Newsitem } from "./Home";
@@ -40,6 +42,9 @@ export const NewsitemList = ({ newsitems, onEdit }: Props) => {
     return newsitems.filter((_, i) => i >= startPos && i < endPos);
   };
 
+  if (newsitems.length === 0)
+    return <Typography fontStyle="italic">Er zijn nog geen nieuwsitems</Typography>;
+
   return (
     <>
       <List className={styles.list} dense>
@@ -48,9 +53,15 @@ export const NewsitemList = ({ newsitems, onEdit }: Props) => {
             {i > 0 && <Divider />}
             <ListItem disablePadding>
               <ListItemButton onClick={() => onEdit(newsitem)}>
-                <ListItemIcon>
-                  <Newspaper />
-                </ListItemIcon>
+                <ListItemAvatar>
+                  {newsitem.imageUrl ? (
+                    <Avatar alt="img" src={newsitem.imageUrl} />
+                  ) : (
+                    <Avatar>
+                      <Newspaper />
+                    </Avatar>
+                  )}
+                </ListItemAvatar>
                 <ListItemText
                   primary={newsitem.title}
                   secondary={format(newsitem.date.toDate(), "dd-MM-yyyy")}
