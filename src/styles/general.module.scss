@@ -14,18 +14,18 @@
 }
 
 .card {
-  margin-top: 20px;
-  padding: 20px;
-}
-
-.smallCard {
-  margin: auto;
-  max-width: 500px;
-  margin-top: 20px;
   padding: 20px;
 }
 
 .cardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.smallCardContent {
+  margin: auto;
+  width: 100%;
+  max-width: 500px;
   display: flex;
   flex-direction: column;
   gap: 10px;

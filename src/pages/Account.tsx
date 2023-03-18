@@ -8,7 +8,7 @@ import {
 import { ChangeEvent, useState } from "react";
 import { useSetRecoilState } from "recoil";
 import { auth } from "../app/firebase";
-import { PageCard } from "../components/common/PageCard";
+import { Page } from "../components/common/Page";
 import { notificationState } from "../services/notifications";
 import styles from "../styles/general.module.scss";
 import { validateNewPassword } from "../validation/validateNewPassword";
@@ -73,58 +73,66 @@ export const Account = () => {
   };
 
   return (
-    <PageCard title="Account">
-      <Card className={styles.smallCard} variant="outlined">
+    <Page title="Account">
+      <Card className={styles.card} variant="outlined">
         <div className={styles.cardContent}>
           <Typography variant="h5">Uitloggen</Typography>
-          <Button fullWidth onClick={handleLogout} variant="contained">
-            Uitloggen
-          </Button>
-        </div>
-      </Card>
-      <Card className={styles.smallCard} variant="outlined">
-        <div className={styles.cardContent}>
-          <Typography variant="h5">Wachtwoord veranderen</Typography>
-          <TextField
-            fullWidth
-            name="oldPassword"
-            label="Oud wachtwoord"
-            size="small"
-            type="password"
-            value={input.oldPassword}
-            onChange={handleInputChange}
-            error={Boolean(errors["oldPassword"])}
-            helperText={errors["oldPassword"]}
-          />
-          <TextField
-            fullWidth
-            name="newPassword"
-            label="Nieuw wachtwoord"
-            size="small"
-            type="password"
-            value={input.newPassword}
-            onChange={handleInputChange}
-            error={Boolean(errors["password"])}
-            helperText={errors["password"]}
-          />
-          <TextField
-            fullWidth
-            name="confirmPassword"
-            label="Herhaling nieuw wachtwoord"
-            size="small"
-            type="password"
-            value={input.confirmPassword}
-            onChange={handleInputChange}
-            error={Boolean(errors["confirmPassword"])}
-            helperText={errors["confirmPassword"]}
-          />
-          <div className={styles.cardActions}>
-            <Button onClick={handleChangePassword} disabled={changePwdLoading} variant="contained">
-              Aanpassen
+          <div className={styles.smallCardContent}>
+            <Button fullWidth onClick={handleLogout} variant="contained">
+              Uitloggen
             </Button>
           </div>
         </div>
       </Card>
-    </PageCard>
+      <Card className={styles.card} variant="outlined">
+        <div className={styles.cardContent}>
+          <Typography variant="h5">Wachtwoord veranderen</Typography>
+          <div className={styles.smallCardContent}>
+            <TextField
+              fullWidth
+              name="oldPassword"
+              label="Oud wachtwoord"
+              size="small"
+              type="password"
+              value={input.oldPassword}
+              onChange={handleInputChange}
+              error={Boolean(errors["oldPassword"])}
+              helperText={errors["oldPassword"]}
+            />
+            <TextField
+              fullWidth
+              name="newPassword"
+              label="Nieuw wachtwoord"
+              size="small"
+              type="password"
+              value={input.newPassword}
+              onChange={handleInputChange}
+              error={Boolean(errors["password"])}
+              helperText={errors["password"]}
+            />
+            <TextField
+              fullWidth
+              name="confirmPassword"
+              label="Herhaling nieuw wachtwoord"
+              size="small"
+              type="password"
+              value={input.confirmPassword}
+              onChange={handleInputChange}
+              error={Boolean(errors["confirmPassword"])}
+              helperText={errors["confirmPassword"]}
+            />
+            <div className={styles.cardActions}>
+              <Button
+                onClick={handleChangePassword}
+                disabled={changePwdLoading}
+                variant="contained"
+              >
+                Aanpassen
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Card>
+    </Page>
   );
 };

@@ -24,7 +24,7 @@ import {
   ImageListItemBar,
   Typography,
 } from "@mui/material";
-import { PageCard } from "../../components/common/PageCard";
+import { Page } from "../../components/common/Page";
 import { NewsitemDialog } from "./NewsitemDialog";
 import { NewsitemList } from "./NewsitemList";
 import { MarkdownEditor } from "../../components/common/MarkdownEditor";
@@ -247,7 +247,7 @@ export const Home = () => {
   };
 
   return (
-    <PageCard title="Home">
+    <Page title="Home">
       <Card className={styles.card} variant="outlined">
         <div className={styles.cardContent}>
           <Typography variant="h6">Omslagfoto's</Typography>
@@ -328,6 +328,6 @@ export const Home = () => {
           onEdited={handleNewsitemsEdited}
         />
       </Card>
-    </PageCard>
+    </Page>
   );
 };

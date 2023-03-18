@@ -6,7 +6,7 @@ import { auth } from "../app/firebase";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { validateEmail } from "../validation/validateEmail";
 import { Typography, TextField, Button, Card } from "@mui/material";
-import { PageCard } from "../components/common/PageCard";
+import { Page } from "../components/common/Page";
 import styles from "../styles/general.module.scss";
 
 export const ResetPassword = () => {
@@ -40,8 +40,8 @@ export const ResetPassword = () => {
   };
 
   return (
-    <PageCard title="Wachtwoord herstellen">
-      <Card className={styles.smallCard} variant="outlined">
+    <Page title="Wachtwoord herstellen">
+      <Card className={styles.card} variant="outlined">
         <div className={styles.cardContent}>
           <Typography variant="h5">Email vereist</Typography>
           <Typography>
@@ -49,26 +49,28 @@ export const ResetPassword = () => {
             waarmee je het wachtwoord kunt herstellen. Wees erop bedacht dat deze email de spam map
             terecht kan komen.
           </Typography>
-          <TextField
-            fullWidth
-            size="small"
-            name="email"
-            label="Email address"
-            value={input}
-            onChange={handleChange}
-            error={Boolean(error)}
-            helperText={error}
-          />
-          <div className={styles.cardActions}>
-            <Button onClick={() => navigate("/login")} variant="outlined">
-              Terug
-            </Button>
-            <Button disabled={loading} onClick={handleSubmit} variant="contained">
-              Email versturen
-            </Button>
+          <div className={styles.smallCardContent}>
+            <TextField
+              fullWidth
+              size="small"
+              name="email"
+              label="Email address"
+              value={input}
+              onChange={handleChange}
+              error={Boolean(error)}
+              helperText={error}
+            />
+            <div className={styles.cardActions}>
+              <Button onClick={() => navigate("/login")} variant="outlined">
+                Terug
+              </Button>
+              <Button disabled={loading} onClick={handleSubmit} variant="contained">
+                Email versturen
+              </Button>
+            </div>
           </div>
         </div>
       </Card>
-    </PageCard>
+    </Page>
   );
 };

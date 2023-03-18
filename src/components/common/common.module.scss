@@ -1,6 +1,13 @@
-.pageCard {
+.page {
   margin: 30px 0px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.pageTitleCard {
   padding: 20px;
+  padding-bottom: 15px;
 }
 
 .textEditor {
