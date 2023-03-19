@@ -35,3 +35,35 @@ export const newsitemMessage = yup
   .string()
   .max(1500, "Max 1500 karakters toegestaan")
   .required("Nieuwsbericht is verplicht");
+
+export const contacts = yup
+  .string()
+  .max(50, "Max 50 karakters toegestaan")
+  .required("Contactpersonen is verplicht");
+
+export const address = yup
+  .string()
+  .max(50, "Max 50 karakters toegestaan")
+  .matches(
+    /^[A-Za-z\s]+\s[0-9]+$/,
+    'Dit is geen geldige postcode, gebruik dit format: "Straatnaam nummer"'
+  )
+  .required("Straat en huisnummer is verplicht");
+
+export const postalCode = yup
+  .string()
+  .matches(/^[0-9]{4} [A-Z]{2}$/, 'Dit is geen geldige postcode, gebruik dit format: "1234 AA"')
+  .required("Postcode is verplicht");
+
+export const city = yup
+  .string()
+  .max(30, "Max 30 karakters toegestaan")
+  .required("Woonplaats is verplicht");
+
+export const phoneNumber = yup
+  .string()
+  .matches(
+    /\+316\s?[0-9]{8}$/,
+    'Dits is geen geldig telefoonnummer, gebruik dit format: "+316 12345678"'
+  )
+  .required("Telefoonnummer is verplicht");

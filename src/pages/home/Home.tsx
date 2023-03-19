@@ -2,21 +2,10 @@ import { ChangeEvent, useEffect, useState } from "react";
 import { useSetRecoilState } from "recoil";
 import { notificationState } from "../../services/notifications";
 import { db, storage } from "../../app/firebase";
-import {
-  addDoc,
-  collection,
-  doc,
-  getDocs,
-  orderBy,
-  query,
-  Timestamp,
-  updateDoc,
-  where,
-} from "firebase/firestore";
+import { collection, getDocs, orderBy, query, Timestamp } from "firebase/firestore";
 import { deleteObject, getDownloadURL, listAll, ref, uploadBytes } from "firebase/storage";
 import {
   Button,
-  Card,
   CircularProgress,
   IconButton,
   ImageList,
@@ -27,9 +16,10 @@ import {
 import { Page } from "../../components/common/Page";
 import { NewsitemDialog } from "./NewsitemDialog";
 import { NewsitemList } from "./NewsitemList";
-import { MarkdownEditor } from "../../components/common/MarkdownEditor";
 import { Delete } from "@mui/icons-material";
 import styles from "../../styles/general.module.scss";
+import { TextEditCard } from "../../components/common/TextEditCard";
+import { AppCard } from "../../components/common/AppCard";
 
 interface CoverPhoto {
   id: string;
@@ -46,13 +36,9 @@ export interface Newsitem {
 
 export const Home = () => {
   const setNotification = useSetRecoilState(notificationState);
-  const [introText, setIntroText] = useState({ id: "", text: "" });
-  const [introTextLoading, setIntroTextLoading] = useState(false);
-  const [newsitems, setNewitems] = useState<Newsitem[]>([]);
-
   const [coverPhotos, setCoverPhotos] = useState<CoverPhoto[]>([]);
   const [coverPhotosLoading, setCoverPhotosLoading] = useState(false);
-
+  const [newsitems, setNewitems] = useState<Newsitem[]>([]);
   const [newsitemsLoading, setNewitemsLoading] = useState(false);
   const [newsItemDialogIsOpen, setNewsItemDialogIsOpen] = useState(false);
   const [editNewsitem, setEditNewsitem] = useState<Newsitem | undefined>();
@@ -82,29 +68,6 @@ export const Home = () => {
     };
     fetchCoverPhotos();
   }, []);
-
-  useEffect(() => {
-    const fetchIntroText = async () => {
-      try {
-        const querySnapshot = await getDocs(
-          query(collection(db, "introtext"), where("page", "==", "home"))
-        );
-        if (!querySnapshot.empty) {
-          const id = querySnapshot.docs[0].id;
-          const text = querySnapshot.docs[0].data().text;
-          setIntroText({ id, text });
-        }
-      } catch (error) {
-        console.error(error);
-        setNotification({
-          message: "Het is niet gelukt om een connectie met de database te maken",
-          severity: "error",
-        });
-      }
-    };
-
-    fetchIntroText();
-  }, [setNotification]);
 
   useEffect(() => {
     const fetchNewsitems = async () => {
@@ -194,40 +157,6 @@ export const Home = () => {
     }
   };
 
-  const handleIntroTextChange = (input?: string) => {
-    if (!input) return;
-    setIntroText((prevValue) => ({ ...prevValue, text: input }));
-  };
-
-  const handleClearIntroText = () => {
-    setIntroText((prevValue) => ({ ...prevValue, text: "" }));
-  };
-
-  const handleSubmitIntroText = async () => {
-    setIntroTextLoading(true);
-    try {
-      if (introText.id) {
-        await updateDoc(doc(db, "introtext/" + introText.id), {
-          page: "home",
-          text: introText.text,
-        });
-      } else {
-        await addDoc(collection(db, "introtext"), {
-          page: "home",
-          text: introText.text,
-        });
-      }
-      setNotification({ message: "De aanpassingen zijn opgeslagen", severity: "success" });
-    } catch (error) {
-      console.log(error);
-      setNotification({
-        message: "Het is niet gelukt om de aanpassingen op te slaan",
-        severity: "error",
-      });
-    }
-    setIntroTextLoading(false);
-  };
-
   const handleOpenNewsItemDialog = () => {
     setNewsItemDialogIsOpen(true);
   };
@@ -248,78 +177,54 @@ export const Home = () => {
 
   return (
     <Page title="Home">
-      <Card className={styles.card} variant="outlined">
-        <div className={styles.cardContent}>
-          <Typography variant="h6">Omslagfoto's</Typography>
-          <Typography>Je kunt 5 omslagfoto's uploaden om weer te geven op de homepage.</Typography>
-          {coverPhotosLoading ? (
-            <CircularProgress />
-          ) : (
-            <ImageList className={styles.imgList} cols={5} rowHeight={200} variant="quilted">
-              {coverPhotos.map((photo, i) => (
-                <ImageListItem key={photo.id}>
-                  <img src={photo.imgUrl} alt="Geen afbeelding" />
-                  <ImageListItemBar
-                    title={"Omslagfoto " + (i + 1)}
-                    actionIcon={
-                      <IconButton
-                        sx={{ color: "#fff" }}
-                        onClick={() => handleDeleteCoverPhoto(photo.id)}
-                      >
-                        <Delete />
-                      </IconButton>
-                    }
-                  />
-                </ImageListItem>
-              ))}
-            </ImageList>
-          )}
-          <div className={styles.cardActions}>
-            <Button
-              variant="contained"
-              component="label"
-              disabled={Boolean(!(coverPhotos.length < 5))}
-            >
-              Omslagfoto's uploaden
-              <input accept=".jpg,.png" type="file" hidden multiple onChange={handleImageUpload} />
-            </Button>
-          </div>
+      <AppCard title="Omslagfoto's">
+        <Typography>Je kunt 5 omslagfoto's uploaden om weer te geven op de homepage.</Typography>
+        {coverPhotosLoading ? (
+          <CircularProgress />
+        ) : (
+          <ImageList className={styles.imgList} cols={5} rowHeight={200} variant="quilted">
+            {coverPhotos.map((photo, i) => (
+              <ImageListItem key={photo.id}>
+                <img src={photo.imgUrl} alt="Geen afbeelding" />
+                <ImageListItemBar
+                  title={"Omslagfoto " + (i + 1)}
+                  actionIcon={
+                    <IconButton
+                      sx={{ color: "#fff" }}
+                      onClick={() => handleDeleteCoverPhoto(photo.id)}
+                    >
+                      <Delete />
+                    </IconButton>
+                  }
+                />
+              </ImageListItem>
+            ))}
+          </ImageList>
+        )}
+        <div className={styles.cardActions}>
+          <Button
+            variant="contained"
+            component="label"
+            disabled={Boolean(!(coverPhotos.length < 5))}
+          >
+            Omslagfoto's uploaden
+            <input accept=".jpg,.png" type="file" hidden multiple onChange={handleImageUpload} />
+          </Button>
         </div>
-      </Card>
-      <Card className={styles.card} variant="outlined">
-        <div className={styles.cardContent}>
-          <Typography variant="h6">Introductietekst</Typography>
-          <MarkdownEditor value={introText.text} onChange={handleIntroTextChange} />
-          <div className={styles.cardActions}>
-            <Button onClick={handleClearIntroText} variant="outlined">
-              Leeg veld
-            </Button>
-            <Button
-              onClick={handleSubmitIntroText}
-              disabled={introTextLoading || !introText.text}
-              variant="contained"
-            >
-              Opslaan
-            </Button>
-          </div>
-        </div>
-      </Card>
+      </AppCard>
+      <TextEditCard title="Introductietekst" identifier="intro" page="home" />
+      <AppCard title="Nieuwsitems">
+        <Typography>Voeg een nieuwsitem toe, of klik op een item om het te bewerken.</Typography>
+        {newsitemsLoading ? (
+          <CircularProgress />
+        ) : (
+          <NewsitemList newsitems={newsitems} onEdit={handleEditNewsitem} />
+        )}
 
-      <Card className={styles.card} variant="outlined">
-        <div className={styles.cardContent}>
-          <Typography variant="h6">Nieuwsitems</Typography>
-          <Typography>Voeg een nieuwsitem toe, of klik op een item om het te bewerken.</Typography>
-          {newsitemsLoading ? (
-            <CircularProgress />
-          ) : (
-            <NewsitemList newsitems={newsitems} onEdit={handleEditNewsitem} />
-          )}
-
-          <div className={styles.cardActions}>
-            <Button onClick={handleOpenNewsItemDialog} variant="contained">
-              Nieuws item toevoegen
-            </Button>
-          </div>
+        <div className={styles.cardActions}>
+          <Button onClick={handleOpenNewsItemDialog} variant="contained">
+            Nieuws item toevoegen
+          </Button>
         </div>
         <NewsitemDialog
           open={newsItemDialogIsOpen}
@@ -327,7 +232,7 @@ export const Home = () => {
           newsitem={editNewsitem}
           onEdited={handleNewsitemsEdited}
         />
-      </Card>
+      </AppCard>
     </Page>
   );
 };
