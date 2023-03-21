@@ -20,6 +20,7 @@ import { Delete } from "@mui/icons-material";
 import styles from "../../styles/general.module.scss";
 import { TextEditCard } from "../../components/common/TextEditCard";
 import { AppCard } from "../../components/common/AppCard";
+import { CropImageDialog } from "../../components/CropImageDialog";
 
 interface CoverPhoto {
   id: string;
@@ -43,6 +44,8 @@ export const Home = () => {
   const [newsItemDialogIsOpen, setNewsItemDialogIsOpen] = useState(false);
   const [editNewsitem, setEditNewsitem] = useState<Newsitem | undefined>();
   const [refreshNewsitems, setRefreshNewsitems] = useState(true);
+  const [imageToCrop, setImageToCrop] = useState<File | undefined>();
+  const [cropImageLoading, setCropImageLoading] = useState(false);
 
   useEffect(() => {
     const fetchCoverPhotos = async () => {
@@ -114,30 +117,33 @@ export const Home = () => {
     }
   }, [refreshNewsitems, setNotification]);
 
-  const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+  const handleSelectCoverPhoto = (e: ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
-    const files = Array.from(e.target.files);
-    const allowedNumOfFiles = 5 - coverPhotos.length;
-    if (files.length > allowedNumOfFiles) {
-      return setNotification({
-        message: `Te veel foto's geselecteerd. Je kunt nog maximaal ${allowedNumOfFiles} foto's uploaden`,
-        severity: "warning",
+    if (e.target.files) {
+      const file = e.target.files[0];
+      setImageToCrop(file);
+    }
+  };
+
+  const handleImageUpload = async (blob: Blob) => {
+    setCropImageLoading(true);
+    const id = crypto.randomUUID();
+    const imgRef = ref(storage, "images/coverphotos/home/" + id);
+    const imgUrl = URL.createObjectURL(blob);
+
+    try {
+      await uploadBytes(imgRef, blob);
+      setCoverPhotos((prevValue) => [...prevValue, { id, imgUrl }]);
+      setImageToCrop(undefined);
+      setNotification({ message: "De omslagfoto is opgeslagen", severity: "success" });
+    } catch (err) {
+      console.log(err);
+      setNotification({
+        message: "Het is niet gelukt om de omslagfoto op te slaan",
+        severity: "error",
       });
     }
-
-    const newCoverPhotos = await Promise.all(
-      files.map(async (f) => {
-        const id = crypto.randomUUID();
-        const imgRef = ref(storage, "images/coverphotos/home/" + id);
-        const blob = new Blob([f]);
-        const imgUrl = URL.createObjectURL(blob);
-        await uploadBytes(imgRef, blob);
-        return { id, imgUrl };
-      })
-    );
-
-    setCoverPhotos((prevValue) => [...prevValue, ...newCoverPhotos]);
-    setNotification({ message: `Er zijn ${files.length} foto's geüpload`, severity: "success" });
+    setCropImageLoading(false);
   };
 
   const handleDeleteCoverPhoto = async (id: string) => {
@@ -208,7 +214,7 @@ export const Home = () => {
             disabled={Boolean(!(coverPhotos.length < 5))}
           >
             Omslagfoto's uploaden
-            <input accept=".jpg,.png" type="file" hidden multiple onChange={handleImageUpload} />
+            <input accept=".jpg,.png" type="file" hidden onChange={handleSelectCoverPhoto} />
           </Button>
         </div>
       </AppCard>
@@ -226,6 +232,13 @@ export const Home = () => {
             Nieuws item toevoegen
           </Button>
         </div>
+        <CropImageDialog
+          imageToCrop={imageToCrop}
+          onClose={() => setImageToCrop(undefined)}
+          onUpload={handleImageUpload}
+          loading={cropImageLoading}
+          aspectRatio={20 / 15}
+        />
         <NewsitemDialog
           open={newsItemDialogIsOpen}
           onClose={handleCloseNewsItemDialog}
