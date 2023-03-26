@@ -20,7 +20,6 @@ import { MarkdownEditor } from "../../components/common/MarkdownEditor";
 import { Newsitem } from "./Home";
 import { validateNewsitem } from "../../validation/validateNewsitem";
 import { format } from "date-fns";
-import styles from "../../styles/general.module.scss";
 
 interface ErrorObj {
   title?: string;
@@ -199,7 +198,7 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
 
   return (
     <Dialog open={open} onClose={() => handleClose()} fullWidth>
-      <div className={styles.inputDialog}>
+      <div className="input-dialog">
         <Typography variant="h5">Nieuwsitem {newsitem ? "aanpassen" : "plaatsen"}</Typography>
         <TextField
           inputProps={{ maxLength: 50 }}
@@ -242,7 +241,7 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
                   <ListItemAvatar>
                     <Avatar alt="fail" src={URL.createObjectURL(newImage.blob)} />
                   </ListItemAvatar>
-                  <ListItemText className={styles.listItemText} primary={newImage.name} />
+                  <ListItemText className="list-item-text" primary={newImage.name} />
                 </>
               )}
               {imageURL && (
@@ -250,7 +249,7 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
                   <ListItemAvatar>
                     <Avatar alt="fail" src={imageURL} />
                   </ListItemAvatar>
-                  <ListItemText className={styles.listItemText} primary="Newsitem image" />
+                  <ListItemText className="list-item-text" primary="Newsitem image" />
                 </>
               )}
               <IconButton onClick={handleDeleteImage}>
@@ -261,7 +260,7 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
         )}
         <MarkdownEditor value={markdownInput} onChange={handleMarkdownInputChange} />
         {errors?.message && <Typography color="error">{errors.message}</Typography>}
-        <div className={styles.dialogActions}>
+        <div className="dialog-actions">
           <Button onClick={() => handleClose()} variant="outlined">
             Cancel
           </Button>

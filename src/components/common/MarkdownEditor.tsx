@@ -1,5 +1,4 @@
 import MDEditor, { commands } from "@uiw/react-md-editor";
-import styles from "./common.module.scss";
 
 interface Props {
   value: string;
@@ -24,7 +23,7 @@ export const MarkdownEditor = ({ value, onChange }: Props) => {
 
   return (
     <MDEditor
-      className={styles.textEditor}
+      className="text-editor"
       commands={allowedCommands}
       extraCommands={extraCommands}
       preview="edit"

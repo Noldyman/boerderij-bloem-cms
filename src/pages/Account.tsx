@@ -10,7 +10,6 @@ import { useSetRecoilState } from "recoil";
 import { auth } from "../app/firebase";
 import { Page } from "../components/common/Page";
 import { notificationState } from "../services/notifications";
-import styles from "../styles/general.module.scss";
 import { validateNewPassword } from "../validation/validateNewPassword";
 
 const initialInput = { oldPassword: "", newPassword: "", confirmPassword: "" };
@@ -74,20 +73,20 @@ export const Account = () => {
 
   return (
     <Page title="Account">
-      <Card className={styles.card} variant="outlined">
-        <div className={styles.cardContent}>
+      <Card className="card" variant="outlined">
+        <div className="card-content">
           <Typography variant="h5">Uitloggen</Typography>
-          <div className={styles.smallCardContent}>
+          <div className="small-card-content">
             <Button fullWidth onClick={handleLogout} variant="contained">
               Uitloggen
             </Button>
           </div>
         </div>
       </Card>
-      <Card className={styles.card} variant="outlined">
-        <div className={styles.cardContent}>
+      <Card className="card" variant="outlined">
+        <div className="card-content">
           <Typography variant="h5">Wachtwoord veranderen</Typography>
-          <div className={styles.smallCardContent}>
+          <div className="small-card-content">
             <TextField
               fullWidth
               name="oldPassword"
@@ -121,7 +120,7 @@ export const Account = () => {
               error={Boolean(errors["confirmPassword"])}
               helperText={errors["confirmPassword"]}
             />
-            <div className={styles.cardActions}>
+            <div className="card-actions">
               <Button
                 onClick={handleChangePassword}
                 disabled={changePwdLoading}

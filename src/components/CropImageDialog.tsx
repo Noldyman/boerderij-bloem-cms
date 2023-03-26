@@ -2,7 +2,6 @@ import { SyntheticEvent, useEffect, useRef, useState } from "react";
 import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from "react-image-crop";
 import { Button, Dialog, LinearProgress, Slider, Typography } from "@mui/material";
 import "react-image-crop/src/ReactCrop.scss";
-import styles from "./components.module.scss";
 
 interface Props {
   imageToCrop?: File;
@@ -144,18 +143,18 @@ export const CropImageDialog = ({
 
   return (
     <Dialog open={Boolean(imageToCrop)} onClose={onClose} fullWidth>
-      <div className={styles.inputDialog}>
+      <div className="input-dialog">
         <Typography variant="h5">Foto bijsnijden</Typography>
         <ReactCrop
           crop={crop}
           aspect={aspectRatio}
-          className={styles.cropComponent}
+          className="crop-component"
           onChange={(_, percentCrop) => setCrop(percentCrop)}
           onComplete={(c) => setCompletedCrop(c)}
         >
           {imageToCrop && (
             <img
-              className={styles.imageToCrop}
+              className="image-to-crop"
               style={{
                 transform: `scale(${scale}) rotate(${rotate}deg)`,
               }}
@@ -166,8 +165,8 @@ export const CropImageDialog = ({
             />
           )}
         </ReactCrop>
-        <div className={styles.cropSliders}>
-          <div className={styles.cropSlider}>
+        <div className="crop-sliders">
+          <div className="crop-slider">
             <Typography fontWeight="bold">Draaien</Typography>
             <Slider
               color="primary"
@@ -189,7 +188,7 @@ export const CropImageDialog = ({
               ]}
             />
           </div>
-          <div className={styles.cropSlider}>
+          <div className="crop-slider">
             <Typography fontWeight="bold">Vergroten</Typography>
             <Slider
               color="primary"
@@ -212,8 +211,8 @@ export const CropImageDialog = ({
             />
           </div>
         </div>
-        <canvas className={styles.resultCanvas} ref={resultCanvasRef} />
-        <div className={styles.dialogActions}>
+        <canvas className="result-canvas" ref={resultCanvasRef} />
+        <div className="dialog-actions">
           <Button variant="outlined" onClick={onClose}>
             Cancel
           </Button>
@@ -221,7 +220,7 @@ export const CropImageDialog = ({
             Selectie uploaden
           </Button>
         </div>
-        {loading ? <LinearProgress /> : <div className={styles.loaderPlaceholder} />}
+        {loading ? <LinearProgress /> : <div className="loader-placeholder" />}
       </div>
     </Dialog>
   );

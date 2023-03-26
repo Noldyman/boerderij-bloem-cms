@@ -7,6 +7,7 @@ import { auth } from "./firebase";
 import { Layout } from "../components/layout/Layout";
 import { Outlet } from "react-router-dom";
 import { Alert, Snackbar } from "@mui/material";
+import "../styles/general.scss";
 
 function App() {
   const setUser = useSetRecoilState(userState);

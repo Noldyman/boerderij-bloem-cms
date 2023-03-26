@@ -15,7 +15,6 @@ import {
 } from "@mui/material";
 import { Delete } from "@mui/icons-material";
 import { CropImageDialog } from "../CropImageDialog";
-import styles from "./common.module.scss";
 
 export interface CoverPhoto {
   id: string;
@@ -112,7 +111,7 @@ export const CoverPhotosCard = ({ page }: Props) => {
       {coverPhotosLoading ? (
         <CircularProgress />
       ) : (
-        <ImageList className={styles.imgList} cols={5} rowHeight={200} variant="quilted">
+        <ImageList className="img-list" cols={5} rowHeight={200} variant="quilted">
           {coverPhotos.map((photo, i) => (
             <ImageListItem key={photo.id}>
               <img src={photo.imgUrl} alt="Geen afbeelding" />
@@ -131,7 +130,7 @@ export const CoverPhotosCard = ({ page }: Props) => {
           ))}
         </ImageList>
       )}
-      <div className={styles.cardActions}>
+      <div className="card-actions">
         <Button variant="contained" component="label" disabled={Boolean(!(coverPhotos.length < 5))}>
           Omslagfoto's uploaden
           <input accept=".jpg,.png" type="file" hidden onChange={handleSelectCoverPhoto} />

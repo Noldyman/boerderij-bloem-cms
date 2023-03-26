@@ -1,6 +1,5 @@
 import { Card, Typography } from "@mui/material";
 import { ReactNode } from "react";
-import styles from "../../styles/general.module.scss";
 
 interface Props {
   title: string;
@@ -9,8 +8,8 @@ interface Props {
 
 export const AppCard = ({ title, children }: Props) => {
   return (
-    <Card className={styles.card} variant="outlined">
-      <div className={styles.cardContent}>
+    <Card className="card" variant="outlined">
+      <div className="card-content">
         <Typography variant="h6">{title}</Typography>
         {children}
       </div>

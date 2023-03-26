@@ -11,7 +11,6 @@ import { NewsitemList } from "./NewsitemList";
 import { TextEditCard } from "../../components/common/TextEditCard";
 import { AppCard } from "../../components/common/AppCard";
 import { CoverPhotosCard } from "../../components/common/CoverPhotosCard";
-import styles from "../../styles/general.module.scss";
 
 export interface Newsitem {
   id: string;
@@ -105,7 +104,7 @@ export const Home = () => {
           <NewsitemList newsitems={newsitems} onEdit={handleEditNewsitem} />
         )}
 
-        <div className={styles.cardActions}>
+        <div className="card-actions">
           <Button onClick={handleOpenNewsItemDialog} variant="contained">
             Nieuws item toevoegen
           </Button>

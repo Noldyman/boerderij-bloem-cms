@@ -7,7 +7,6 @@ import { sendPasswordResetEmail } from "firebase/auth";
 import { validateEmail } from "../validation/validateEmail";
 import { Typography, TextField, Button, Card } from "@mui/material";
 import { Page } from "../components/common/Page";
-import styles from "../styles/general.module.scss";
 
 export const ResetPassword = () => {
   const navigate = useNavigate();
@@ -41,15 +40,15 @@ export const ResetPassword = () => {
 
   return (
     <Page title="Wachtwoord herstellen">
-      <Card className={styles.card} variant="outlined">
-        <div className={styles.cardContent}>
+      <Card className="card" variant="outlined">
+        <div className="card-content">
           <Typography variant="h5">Email vereist</Typography>
           <Typography>
             Voer je email adres in. Als dit email adres bekend is, wordt er een email verstuurd
             waarmee je het wachtwoord kunt herstellen. Wees erop bedacht dat deze email de spam map
             terecht kan komen.
           </Typography>
-          <div className={styles.smallCardContent}>
+          <div className="small-card-content">
             <TextField
               fullWidth
               size="small"
@@ -60,7 +59,7 @@ export const ResetPassword = () => {
               error={Boolean(error)}
               helperText={error}
             />
-            <div className={styles.cardActions}>
+            <div className="card-actions">
               <Button onClick={() => navigate("/login")} variant="outlined">
                 Terug
               </Button>

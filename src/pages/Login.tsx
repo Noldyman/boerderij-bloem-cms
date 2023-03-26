@@ -3,7 +3,6 @@ import { Button, Card, TextField, Typography } from "@mui/material";
 import { auth } from "../app/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { Link, useNavigate } from "react-router-dom";
-import styles from "../styles/general.module.scss";
 
 const initialInput = {
   email: "",
@@ -34,7 +33,7 @@ export const Login = () => {
   };
 
   return (
-    <Card className={styles.loginCard}>
+    <Card className="login-card">
       <Typography variant="h5" align="center">
         Inloggen
       </Typography>

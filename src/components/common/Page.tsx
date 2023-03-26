@@ -1,6 +1,5 @@
 import { ReactNode } from "react";
 import { Card, Typography } from "@mui/material";
-import styles from "./common.module.scss";
 
 interface Props {
   title: string;
@@ -9,8 +8,8 @@ interface Props {
 
 export const Page = ({ title, children }: Props) => {
   return (
-    <div className={styles.page}>
-      <Card className={styles.pageTitleCard} variant="outlined">
+    <div className="page">
+      <Card className="page-title-card" variant="outlined">
         <Typography padding={0} variant="h4">
           {title}
         </Typography>

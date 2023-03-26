@@ -1,6 +1,5 @@
 import { Button, Card, CircularProgress, Typography } from "@mui/material";
 import { MarkdownEditor } from "./MarkdownEditor";
-import styles from "../../styles/general.module.scss";
 import { useEffect, useState } from "react";
 import { useSetRecoilState } from "recoil";
 import { notificationState } from "../../services/notifications";
@@ -83,11 +82,11 @@ export const TextEditCard = ({ title, page, identifier }: Props) => {
   };
 
   return (
-    <Card className={styles.card} variant="outlined">
-      <div className={styles.cardContent}>
+    <Card className="card" variant="outlined">
+      <div className="card-content">
         <Typography variant="h6">{title}</Typography>
         {loading ? <CircularProgress /> : <MarkdownEditor value={text} onChange={handleChange} />}
-        <div className={styles.cardActions}>
+        <div className="card-actions">
           <Button onClick={handleClear} disabled={loading || !text} variant="outlined">
             Leeg veld
           </Button>

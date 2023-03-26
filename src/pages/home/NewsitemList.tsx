@@ -13,7 +13,6 @@ import {
 import { Newspaper } from "@mui/icons-material";
 import { Newsitem } from "./Home";
 import { format } from "date-fns";
-import styles from "../../styles/general.module.scss";
 
 interface Props {
   newsitems: Newsitem[];
@@ -47,7 +46,7 @@ export const NewsitemList = ({ newsitems, onEdit }: Props) => {
 
   return (
     <>
-      <List className={styles.list} dense>
+      <List className="list" dense>
         {rowSelection().map((newsitem, i) => (
           <div key={newsitem.id}>
             {i > 0 && <Divider />}

@@ -9,7 +9,6 @@ import { TextEditCard } from "../components/common/TextEditCard";
 import { Button, TextField } from "@mui/material";
 import { validateContactDetails } from "../validation/validateContactDetails";
 import { CoverPhotosCard } from "../components/common/CoverPhotosCard";
-import styles from "../styles/general.module.scss";
 
 interface Errors {
   [key: string]: string;
@@ -99,7 +98,7 @@ export const Contact = () => {
       <TextEditCard title="Introductietekst" page="contact" identifier="intro" />
       <CoverPhotosCard page="contact" />
       <AppCard title="Contactgegevens">
-        <div className={styles.smallCardContent}>
+        <div className="small-card-content">
           <TextField
             size="small"
             name="contacts"
@@ -154,7 +153,7 @@ export const Contact = () => {
             error={Boolean(errors && errors["email"])}
             helperText={errors && errors["email"]}
           />
-          <div className={styles.cardActions}>
+          <div className="card-actions">
             <Button disabled={loading} onClick={handleSubmitContactDetails} variant="contained">
               Opslaan
             </Button>
