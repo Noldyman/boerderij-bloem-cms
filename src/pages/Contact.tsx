@@ -8,6 +8,7 @@ import { AppCard } from "../components/common/AppCard";
 import { TextEditCard } from "../components/common/TextEditCard";
 import { Button, TextField } from "@mui/material";
 import { validateContactDetails } from "../validation/validateContactDetails";
+import { CoverPhotosCard } from "../components/common/CoverPhotosCard";
 import styles from "../styles/general.module.scss";
 
 interface Errors {
@@ -96,6 +97,7 @@ export const Contact = () => {
   return (
     <Page title="Contact">
       <TextEditCard title="Introductietekst" page="contact" identifier="intro" />
+      <CoverPhotosCard page="contact" />
       <AppCard title="Contactgegevens">
         <div className={styles.smallCardContent}>
           <TextField

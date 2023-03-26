@@ -1,31 +1,17 @@
-import { ChangeEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSetRecoilState } from "recoil";
 import { notificationState } from "../../services/notifications";
 import { db, storage } from "../../app/firebase";
 import { collection, getDocs, orderBy, query, Timestamp } from "firebase/firestore";
-import { deleteObject, getDownloadURL, listAll, ref, uploadBytes } from "firebase/storage";
-import {
-  Button,
-  CircularProgress,
-  IconButton,
-  ImageList,
-  ImageListItem,
-  ImageListItemBar,
-  Typography,
-} from "@mui/material";
+import { getDownloadURL, ref } from "firebase/storage";
+import { Button, CircularProgress, Typography } from "@mui/material";
 import { Page } from "../../components/common/Page";
 import { NewsitemDialog } from "./NewsitemDialog";
 import { NewsitemList } from "./NewsitemList";
-import { Delete } from "@mui/icons-material";
-import styles from "../../styles/general.module.scss";
 import { TextEditCard } from "../../components/common/TextEditCard";
 import { AppCard } from "../../components/common/AppCard";
-import { CropImageDialog } from "../../components/CropImageDialog";
-
-interface CoverPhoto {
-  id: string;
-  imgUrl: string;
-}
+import { CoverPhotosCard } from "../../components/common/CoverPhotosCard";
+import styles from "../../styles/general.module.scss";
 
 export interface Newsitem {
   id: string;
@@ -37,40 +23,12 @@ export interface Newsitem {
 
 export const Home = () => {
   const setNotification = useSetRecoilState(notificationState);
-  const [coverPhotos, setCoverPhotos] = useState<CoverPhoto[]>([]);
-  const [coverPhotosLoading, setCoverPhotosLoading] = useState(false);
+
   const [newsitems, setNewitems] = useState<Newsitem[]>([]);
   const [newsitemsLoading, setNewitemsLoading] = useState(false);
   const [newsItemDialogIsOpen, setNewsItemDialogIsOpen] = useState(false);
   const [editNewsitem, setEditNewsitem] = useState<Newsitem | undefined>();
   const [refreshNewsitems, setRefreshNewsitems] = useState(true);
-  const [imageToCrop, setImageToCrop] = useState<File | undefined>();
-  const [cropImageLoading, setCropImageLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchCoverPhotos = async () => {
-      setCoverPhotosLoading(true);
-      try {
-        const listRef = ref(storage, "images/coverphotos/home");
-        const res = await listAll(listRef);
-
-        const newCoverPhotos = await Promise.all(
-          res.items.map(async (item) => {
-            const id = item.name;
-            const imgRef = ref(storage, item.fullPath);
-            const imgUrl = await getDownloadURL(imgRef);
-
-            return { id, imgUrl };
-          })
-        );
-        setCoverPhotos(newCoverPhotos);
-      } catch (error) {
-        console.log(error);
-      }
-      setCoverPhotosLoading(false);
-    };
-    fetchCoverPhotos();
-  }, []);
 
   useEffect(() => {
     const fetchNewsitems = async () => {
@@ -117,52 +75,6 @@ export const Home = () => {
     }
   }, [refreshNewsitems, setNotification]);
 
-  const handleSelectCoverPhoto = (e: ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
-    if (e.target.files) {
-      const file = e.target.files[0];
-      setImageToCrop(file);
-    }
-  };
-
-  const handleImageUpload = async (blob: Blob) => {
-    setCropImageLoading(true);
-    const id = crypto.randomUUID();
-    const imgRef = ref(storage, "images/coverphotos/home/" + id);
-    const imgUrl = URL.createObjectURL(blob);
-
-    try {
-      await uploadBytes(imgRef, blob);
-      setCoverPhotos((prevValue) => [...prevValue, { id, imgUrl }]);
-      setImageToCrop(undefined);
-      setNotification({ message: "De omslagfoto is opgeslagen", severity: "success" });
-    } catch (err) {
-      console.log(err);
-      setNotification({
-        message: "Het is niet gelukt om de omslagfoto op te slaan",
-        severity: "error",
-      });
-    }
-    setCropImageLoading(false);
-  };
-
-  const handleDeleteCoverPhoto = async (id: string) => {
-    try {
-      const imgRef = ref(storage, "images/coverphotos/home/" + id);
-      await deleteObject(imgRef).catch((err) => {
-        if (!err.message.includes("storage/object-not-found")) throw Error(err);
-      });
-      setCoverPhotos((prevValue) => prevValue.filter((p) => p.id !== id));
-      setNotification({ message: "De foto is verwijderd", severity: "success" });
-    } catch (error) {
-      console.log(error);
-      setNotification({
-        message: "Het is niet gelukt om de foto te verwijderen",
-        severity: "error",
-      });
-    }
-  };
-
   const handleOpenNewsItemDialog = () => {
     setNewsItemDialogIsOpen(true);
   };
@@ -183,42 +95,8 @@ export const Home = () => {
 
   return (
     <Page title="Home">
-      <AppCard title="Omslagfoto's">
-        <Typography>Je kunt 5 omslagfoto's uploaden om weer te geven op de homepage.</Typography>
-        {coverPhotosLoading ? (
-          <CircularProgress />
-        ) : (
-          <ImageList className={styles.imgList} cols={5} rowHeight={200} variant="quilted">
-            {coverPhotos.map((photo, i) => (
-              <ImageListItem key={photo.id}>
-                <img src={photo.imgUrl} alt="Geen afbeelding" />
-                <ImageListItemBar
-                  title={"Omslagfoto " + (i + 1)}
-                  actionIcon={
-                    <IconButton
-                      sx={{ color: "#fff" }}
-                      onClick={() => handleDeleteCoverPhoto(photo.id)}
-                    >
-                      <Delete />
-                    </IconButton>
-                  }
-                />
-              </ImageListItem>
-            ))}
-          </ImageList>
-        )}
-        <div className={styles.cardActions}>
-          <Button
-            variant="contained"
-            component="label"
-            disabled={Boolean(!(coverPhotos.length < 5))}
-          >
-            Omslagfoto's uploaden
-            <input accept=".jpg,.png" type="file" hidden onChange={handleSelectCoverPhoto} />
-          </Button>
-        </div>
-      </AppCard>
       <TextEditCard title="Introductietekst" identifier="intro" page="home" />
+      <CoverPhotosCard page="home" />
       <AppCard title="Nieuwsitems">
         <Typography>Voeg een nieuwsitem toe, of klik op een item om het te bewerken.</Typography>
         {newsitemsLoading ? (
@@ -232,13 +110,7 @@ export const Home = () => {
             Nieuws item toevoegen
           </Button>
         </div>
-        <CropImageDialog
-          imageToCrop={imageToCrop}
-          onClose={() => setImageToCrop(undefined)}
-          onUpload={handleImageUpload}
-          loading={cropImageLoading}
-          aspectRatio={20 / 15}
-        />
+
         <NewsitemDialog
           open={newsItemDialogIsOpen}
           onClose={handleCloseNewsItemDialog}

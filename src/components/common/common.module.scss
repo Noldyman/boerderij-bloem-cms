@@ -14,3 +14,28 @@
   width: 100%;
   min-height: 100px;
 }
+
+.imgList {
+  margin: 0px;
+}
+
+.cardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.smallCardContent {
+  margin: auto;
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cardActions {
+  display: flex;
+  justify-content: end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
