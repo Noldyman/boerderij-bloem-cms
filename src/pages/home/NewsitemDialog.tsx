@@ -9,6 +9,7 @@ import {
   Button,
   Dialog,
   IconButton,
+  LinearProgress,
   ListItem,
   ListItemAvatar,
   ListItemText,
@@ -20,6 +21,7 @@ import { MarkdownEditor } from "../../components/common/MarkdownEditor";
 import { Newsitem } from "./Home";
 import { validateNewsitem } from "../../validation/validateNewsitem";
 import { format } from "date-fns";
+import { CropImageDialog } from "../../components/CropImageDialog";
 
 interface ErrorObj {
   title?: string;
@@ -49,6 +51,7 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
   const [loading, setLoading] = useState(false);
   const [newImage, setNewImage] = useState<NewImage | undefined>();
   const [imageURL, setImageURL] = useState<string | undefined>(newsitem?.imageUrl);
+  const [imageToCrop, setImageToCrop] = useState<File | undefined>();
 
   useEffect(() => {
     const getInitialInput = () => {
@@ -82,12 +85,16 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
     setMarkdownInput(input ? input : "");
   };
 
-  const handleAddImage = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleSelectImage = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const file = e.target.files[0];
-      const blob = new Blob([file]);
-      setNewImage({ name: file.name, blob: blob });
+      setImageToCrop(file);
     }
+  };
+
+  const handleAddImage = (blob: Blob) => {
+    setNewImage({ name: "file.name", blob: blob });
+    setImageToCrop(undefined);
   };
 
   const handleDeleteImage = () => {
@@ -135,6 +142,7 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
         title: input.title,
         date: new Date(input.date),
         message: markdownInput,
+        hasImage: Boolean(newImage),
       });
 
       const imgRef = ref(storage, "images/newsitems/" + id);
@@ -177,6 +185,8 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
         title: input.title,
         date: new Date(input.date),
         message: markdownInput,
+        likes: 0,
+        hasImage: Boolean(newImage),
       });
 
       if (newImage) {
@@ -231,7 +241,7 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
           startIcon={<PhotoCamera />}
         >
           Afbeelding uploaden
-          <input accept=".jpg,.png" type="file" hidden onChange={handleAddImage} />
+          <input accept=".jpg,.png" type="file" hidden onChange={handleSelectImage} />
         </Button>
         {(newImage || imageURL) && (
           <>
@@ -258,6 +268,7 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
             </ListItem>
           </>
         )}
+
         <MarkdownEditor value={markdownInput} onChange={handleMarkdownInputChange} />
         {errors?.message && <Typography color="error">{errors.message}</Typography>}
         <div className="dialog-actions">
@@ -283,7 +294,15 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
             </Button>
           )}
         </div>
+        {loading ? <LinearProgress /> : <div className="loader-placeholder" />}
       </div>
+      <CropImageDialog
+        imageToCrop={imageToCrop}
+        onClose={() => setImageToCrop(undefined)}
+        onUpload={handleAddImage}
+        loading={false}
+        aspectRatio={20 / 15}
+      />
     </Dialog>
   );
 };
