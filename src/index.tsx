@@ -7,6 +7,7 @@ import App from "./app/App";
 import { Login } from "./pages/Login";
 import { ResetPassword } from "./pages/ResetPassword";
 import { Home } from "./pages/home/Home";
+import { IrishTerriers } from "./pages/irishTerriers/IrishTerriers";
 import { Contact } from "./pages/Contact";
 import { Account } from "./pages/Account";
 import { NotFound } from "./pages/NotFound";
@@ -25,6 +26,7 @@ root.render(
             </Route>
             <Route element={<ProtectedRoute userRequired />}>
               <Route index element={<Home />} />
+              <Route path="/ierse-terriers" element={<IrishTerriers />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/account" element={<Account />} />
             </Route>

@@ -9,6 +9,7 @@ interface Props {
   onUpload: (blob: Blob) => void;
   loading: boolean;
   aspectRatio?: number;
+  circularCrop?: boolean;
 }
 
 export const CropImageDialog = ({
@@ -17,6 +18,7 @@ export const CropImageDialog = ({
   onUpload,
   loading,
   aspectRatio,
+  circularCrop,
 }: Props) => {
   const imgRef = useRef<HTMLImageElement>(null);
   const [imgSrc, setImgSrc] = useState("");
@@ -151,6 +153,7 @@ export const CropImageDialog = ({
           className="crop-component"
           onChange={(_, percentCrop) => setCrop(percentCrop)}
           onComplete={(c) => setCompletedCrop(c)}
+          circularCrop={circularCrop}
         >
           {imageToCrop && (
             <img

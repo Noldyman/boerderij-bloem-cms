@@ -1,9 +1,9 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import { useSetRecoilState } from "recoil";
 import { notificationState } from "../../services/notifications";
-import { db, storage } from "../../app/firebase";
 import { addDoc, collection, deleteDoc, doc, updateDoc } from "firebase/firestore";
-import { deleteObject, ref, uploadBytes } from "firebase/storage";
+import { uploadBytes, ref, deleteObject } from "firebase/storage";
+import { db, storage } from "../../app/firebase";
 import {
   Avatar,
   Button,
@@ -15,56 +15,51 @@ import {
   Typography,
 } from "@mui/material";
 import { Delete, PhotoCamera } from "@mui/icons-material";
-import { MarkdownEditor } from "../../components/common/MarkdownEditor";
-import { Newsitem } from "./Home";
-import { validateNewsitem } from "../../validation/validateNewsitem";
-import { format } from "date-fns";
-import { CropImageDialog } from "../../components/CropImageDialog";
 import { InputDialog } from "../../components/InputDialog";
+import { Terrier } from "../../models/irishTerriers";
 import { NewImage } from "../../models/images";
+import { CropImageDialog } from "../../components/CropImageDialog";
+import { validateTerrier } from "../../validation/validateTerrier";
+import { format } from "date-fns";
 
 interface ErrorObj {
-  title?: string;
-  date?: string;
-  message?: string;
+  name?: string;
+  dateOfBirth?: string;
+  description?: string;
+  image?: string;
 }
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  newsitem?: Newsitem;
+  terrier?: Terrier;
   onEdited: () => void;
 }
 
-const initialInput = { title: "", date: format(new Date(), "yyy-MM-dd") };
+const initialInput = { name: "", dateOfBirth: "", description: "" };
 
-export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => {
+export const TerrierDialog = ({ open, onClose, terrier, onEdited }: Props) => {
   const setNotification = useSetRecoilState(notificationState);
   const [input, setInput] = useState(initialInput);
-  const [markdownInput, setMarkdownInput] = useState("");
   const [errors, setErrors] = useState<ErrorObj | undefined>();
   const [loading, setLoading] = useState(false);
   const [newImage, setNewImage] = useState<NewImage | undefined>();
-  const [imageURL, setImageURL] = useState<string | undefined>(newsitem?.imageUrl);
+  const [imageURL, setImageURL] = useState<string | undefined>();
   const [imageToCrop, setImageToCrop] = useState<File | undefined>();
 
   useEffect(() => {
-    const getInitialInput = () => {
-      if (newsitem) {
-        setInput({
-          title: newsitem.title,
-          date: format(newsitem.date.toDate(), "yyyy-MM-dd"),
-        });
-        setMarkdownInput(newsitem.message);
-        if (newsitem.imageUrl) setImageURL(newsitem.imageUrl);
-      }
-    };
-    getInitialInput();
-  }, [newsitem]);
+    if (terrier) {
+      setInput({
+        name: terrier.name,
+        dateOfBirth: format(terrier.dateOfBirth.toDate(), "yyyy-MM-dd"),
+        description: terrier.description,
+      });
+      setImageURL(terrier.imageUrl);
+    }
+  }, [terrier]);
 
   const handleClose = (edited?: boolean) => {
     setInput(initialInput);
-    setMarkdownInput("");
     setErrors(undefined);
     setImageURL(undefined);
     setNewImage(undefined);
@@ -74,10 +69,6 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setInput((prevValue) => ({ ...prevValue, [e.target.name]: e.target.value }));
-  };
-
-  const handleMarkdownInputChange = (input?: string) => {
-    setMarkdownInput(input ? input : "");
   };
 
   const handleSelectImage = (e: ChangeEvent<HTMLInputElement>) => {
@@ -99,20 +90,20 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
 
   const handleDelete = async (id: string) => {
     try {
-      await deleteDoc(doc(db, "newsitems/" + id));
+      await deleteDoc(doc(db, "terriers/" + id));
       if (newImage || imageURL) {
-        const imgRef = ref(storage, "images/newsitems/" + id);
+        const imgRef = ref(storage, "images/terriers/" + id);
         await deleteObject(imgRef).catch((err) => {
           if (!err.message.includes("storage/object-not-found")) throw Error(err);
         });
       }
 
-      setNotification({ message: "Het nieuwsitem is verwijderd", severity: "success" });
+      setNotification({ message: "De Ierse terriër is verwijderd", severity: "success" });
       handleClose(true);
     } catch (error) {
       console.log(error);
       setNotification({
-        message: "Het is niet gelukt om het nieuwsitem te verwijderen",
+        message: "Het is niet gelukt om de Ierse terriër te verwijderen",
         severity: "error",
       });
     }
@@ -121,26 +112,24 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
   const handleUpdate = async (id: string) => {
     setLoading(true);
     setErrors(undefined);
-    const errors = await validateNewsitem({
-      title: input.title,
-      date: new Date(input.date),
-      message: markdownInput,
-    });
+    setErrors(undefined);
+    let errors = await validateTerrier(input);
+    if (!newImage) {
+      if (!errors) errors = { image: "Een afbeelding is verplicht" };
+      else errors["image"] = "Een afbeelding is verplicht";
+    }
 
     if (errors) {
       setLoading(false);
       return setErrors(errors);
     }
-
     try {
-      await updateDoc(doc(db, "newsitems/" + id), {
-        title: input.title,
-        date: new Date(input.date),
-        message: markdownInput,
-        hasImage: Boolean(newImage),
+      await updateDoc(doc(db, "terriers/" + id), {
+        ...input,
+        dateOfBirth: new Date(input.dateOfBirth),
       });
 
-      const imgRef = ref(storage, "images/newsitems/" + id);
+      const imgRef = ref(storage, "images/terriers/" + id);
       if (newImage) {
         await uploadBytes(imgRef, newImage.blob);
       } else if (!imageURL) {
@@ -149,12 +138,12 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
         });
       }
 
-      setNotification({ message: "Het nieuwsitem is aangepast", severity: "success" });
+      setNotification({ message: "De Ierse terriër is aangepast", severity: "success" });
       handleClose(true);
     } catch (error) {
       console.log(error);
       setNotification({
-        message: "Het is niet gelukt om het nieuwsitem aan te passen",
+        message: "Het is niet gelukt om de Ierse terriër aan te passen",
         severity: "error",
       });
     }
@@ -164,11 +153,11 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
   const handleSubmit = async () => {
     setLoading(true);
     setErrors(undefined);
-    const errors = await validateNewsitem({
-      title: input.title,
-      date: new Date(input.date),
-      message: markdownInput,
-    });
+    let errors = await validateTerrier(input);
+    if (!newImage) {
+      if (!errors) errors = { image: "Een afbeelding is verplicht" };
+      else errors["image"] = "Een afbeelding is verplicht";
+    }
 
     if (errors) {
       setLoading(false);
@@ -176,25 +165,21 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
     }
 
     try {
-      const docRef = await addDoc(collection(db, "newsitems"), {
-        title: input.title,
-        date: new Date(input.date),
-        message: markdownInput,
-        likes: 0,
-        hasImage: Boolean(newImage),
+      const docRef = await addDoc(collection(db, "terriers"), {
+        ...input,
+        dateOfBirth: new Date(input.dateOfBirth),
       });
-
       if (newImage) {
-        const storageRef = ref(storage, "images/newsitems/" + docRef.id);
+        const storageRef = ref(storage, "images/terriers/" + docRef.id);
         await uploadBytes(storageRef, newImage.blob);
       }
 
-      setNotification({ message: "Het nieuwsitem is toegevoegd", severity: "success" });
+      setNotification({ message: "De Ierse terriër toegevoegd", severity: "success" });
       handleClose(true);
     } catch (error) {
       console.log(error);
       setNotification({
-        message: "Het is niet gelukt om het nieuwsitem toe te voegen",
+        message: "Het is niet gelukt om de Ierse terriër toe te voegen",
         severity: "error",
       });
     }
@@ -204,22 +189,22 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
   return (
     <InputDialog
       open={open}
-      onClose={handleClose}
-      title={`Nieuwsitem ${newsitem ? "aanpassen" : "plaatsen"}`}
+      onClose={() => handleClose()}
+      title={`Ierse terriër ${terrier ? "aanpassesn" : "toevoegen"}`}
       loading={loading}
       actions={
         <>
           <Button onClick={() => handleClose()} variant="outlined">
             Cancel
           </Button>
-          {newsitem ? (
+          {terrier ? (
             <>
-              <Button color="error" onClick={() => handleDelete(newsitem.id)} variant="outlined">
+              <Button color="error" onClick={() => handleDelete(terrier.id)} variant="outlined">
                 Verwijderen
               </Button>
               <Button
                 disabled={loading}
-                onClick={() => handleUpdate(newsitem.id)}
+                onClick={() => handleUpdate(terrier.id)}
                 variant="contained"
               >
                 Aanpassen
@@ -227,7 +212,7 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
             </>
           ) : (
             <Button disabled={loading} onClick={handleSubmit} variant="contained">
-              Plaatsen
+              Toevoegen
             </Button>
           )}
         </>
@@ -237,24 +222,24 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
         inputProps={{ maxLength: 50 }}
         fullWidth
         size="small"
-        label="Titel"
-        name="title"
-        placeholder="Titel"
-        value={input.title}
+        label="Naam"
+        name="name"
+        placeholder="Naam"
+        value={input.name}
         onChange={handleInputChange}
-        error={Boolean(errors?.title)}
-        helperText={errors?.title}
+        error={Boolean(errors?.name)}
+        helperText={errors?.name}
       />
       <TextField
         fullWidth
         size="small"
         type="date"
-        name="date"
-        label="Datum"
+        name="dateOfBirth"
+        label="Geboortedatum"
         InputLabelProps={{ shrink: true }}
-        value={input.date}
-        error={Boolean(errors?.date)}
-        helperText={errors?.date}
+        value={input.dateOfBirth}
+        error={Boolean(errors?.dateOfBirth)}
+        helperText={errors?.dateOfBirth}
         onChange={handleInputChange}
       />
       <Button
@@ -266,6 +251,11 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
         Afbeelding uploaden
         <input accept=".jpg,.png" type="file" hidden onChange={handleSelectImage} />
       </Button>
+      {errors?.image && (
+        <Typography marginLeft={2} fontSize={12} color="error">
+          {errors.image}
+        </Typography>
+      )}
       {(newImage || imageURL) && (
         <>
           <ListItem>
@@ -291,15 +281,27 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
           </ListItem>
         </>
       )}
-
-      <MarkdownEditor value={markdownInput} onChange={handleMarkdownInputChange} />
-      {errors?.message && <Typography color="error">{errors.message}</Typography>}
+      <TextField
+        inputProps={{ maxLength: 500 }}
+        fullWidth
+        multiline
+        rows={4}
+        size="small"
+        label="Omschrijving"
+        name="description"
+        placeholder="Omschrijving"
+        value={input.description}
+        onChange={handleInputChange}
+        error={Boolean(errors?.description)}
+        helperText={errors?.description}
+      />
       <CropImageDialog
         imageToCrop={imageToCrop}
         onClose={() => setImageToCrop(undefined)}
         onUpload={handleAddImage}
         loading={false}
-        aspectRatio={20 / 15}
+        aspectRatio={1}
+        circularCrop={true}
       />
     </InputDialog>
   );

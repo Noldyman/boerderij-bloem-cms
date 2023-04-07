@@ -67,3 +67,13 @@ export const phoneNumber = yup
     'Dits is geen geldig telefoonnummer, gebruik dit format: "+316 12345678"'
   )
   .required("Telefoonnummer is verplicht");
+
+export const terrierName = yup
+  .string()
+  .max(50, "Max 50 karakters toegestaan")
+  .required("Naam is verplicht");
+
+export const terrierDescription = yup
+  .string()
+  .max(300, "Max 300 karakters toegestaan")
+  .required("Omschrijving is verplicht");
