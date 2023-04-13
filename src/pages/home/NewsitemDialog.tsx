@@ -1,9 +1,6 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import { useSetRecoilState } from "recoil";
 import { notificationState } from "../../services/notifications";
-import { db, storage } from "../../app/firebase";
-import { addDoc, collection, deleteDoc, doc, updateDoc } from "firebase/firestore";
-import { deleteObject, ref, uploadBytes } from "firebase/storage";
 import {
   Avatar,
   Button,
@@ -16,12 +13,14 @@ import {
 } from "@mui/material";
 import { Delete, PhotoCamera } from "@mui/icons-material";
 import { MarkdownEditor } from "../../components/common/MarkdownEditor";
-import { Newsitem } from "./Home";
 import { validateNewsitem } from "../../validation/validateNewsitem";
 import { format } from "date-fns";
 import { CropImageDialog } from "../../components/CropImageDialog";
 import { InputDialog } from "../../components/InputDialog";
 import { NewImage } from "../../models/images";
+import { Newsitem } from "../../models/news";
+import { createNewsitem, deleteNewsItem, updateNewsItem } from "../../services/newsService";
+import { deleteImage, updateImage } from "../../services/imageService";
 
 interface ErrorObj {
   title?: string;
@@ -33,12 +32,19 @@ interface Props {
   open: boolean;
   onClose: () => void;
   newsitem?: Newsitem;
+  newsitemsWithImageIds: string[];
   onEdited: () => void;
 }
 
 const initialInput = { title: "", date: format(new Date(), "yyy-MM-dd") };
 
-export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => {
+export const NewsitemDialog = ({
+  open,
+  onClose,
+  newsitem,
+  newsitemsWithImageIds,
+  onEdited,
+}: Props) => {
   const setNotification = useSetRecoilState(notificationState);
   const [input, setInput] = useState(initialInput);
   const [markdownInput, setMarkdownInput] = useState("");
@@ -47,6 +53,7 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
   const [newImage, setNewImage] = useState<NewImage | undefined>();
   const [imageURL, setImageURL] = useState<string | undefined>(newsitem?.imageUrl);
   const [imageToCrop, setImageToCrop] = useState<File | undefined>();
+  const currItemHasImage = Boolean(newsitem && newsitemsWithImageIds.includes(newsitem.id));
 
   useEffect(() => {
     const getInitialInput = () => {
@@ -97,20 +104,12 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
     setNewImage(undefined);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, itemHasImage: boolean) => {
     try {
-      await deleteDoc(doc(db, "newsitems/" + id));
-      if (newImage || imageURL) {
-        const imgRef = ref(storage, "images/newsitems/" + id);
-        await deleteObject(imgRef).catch((err) => {
-          if (!err.message.includes("storage/object-not-found")) throw Error(err);
-        });
-      }
-
+      await deleteNewsItem(id, itemHasImage);
       setNotification({ message: "Het nieuwsitem is verwijderd", severity: "success" });
       handleClose(true);
     } catch (error) {
-      console.log(error);
       setNotification({
         message: "Het is niet gelukt om het nieuwsitem te verwijderen",
         severity: "error",
@@ -133,26 +132,21 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
     }
 
     try {
-      await updateDoc(doc(db, "newsitems/" + id), {
+      await updateNewsItem(id, {
         title: input.title,
         date: new Date(input.date),
         message: markdownInput,
-        hasImage: Boolean(newImage),
       });
 
-      const imgRef = ref(storage, "images/newsitems/" + id);
       if (newImage) {
-        await uploadBytes(imgRef, newImage.blob);
-      } else if (!imageURL) {
-        await deleteObject(imgRef).catch((err) => {
-          if (!err.message.includes("storage/object-not-found")) throw Error(err);
-        });
+        await updateImage("newsitems", newImage.blob, id);
+      } else if (currItemHasImage && !imageURL) {
+        await deleteImage("newsitems", id);
       }
 
       setNotification({ message: "Het nieuwsitem is aangepast", severity: "success" });
       handleClose(true);
-    } catch (error) {
-      console.log(error);
+    } catch (_) {
       setNotification({
         message: "Het is niet gelukt om het nieuwsitem aan te passen",
         severity: "error",
@@ -176,23 +170,18 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
     }
 
     try {
-      const docRef = await addDoc(collection(db, "newsitems"), {
+      const newId = await createNewsitem({
         title: input.title,
         date: new Date(input.date),
         message: markdownInput,
         likes: 0,
-        hasImage: Boolean(newImage),
       });
-
       if (newImage) {
-        const storageRef = ref(storage, "images/newsitems/" + docRef.id);
-        await uploadBytes(storageRef, newImage.blob);
+        await updateImage("newsitems", newImage.blob, newId);
       }
-
       setNotification({ message: "Het nieuwsitem is toegevoegd", severity: "success" });
       handleClose(true);
-    } catch (error) {
-      console.log(error);
+    } catch (_) {
       setNotification({
         message: "Het is niet gelukt om het nieuwsitem toe te voegen",
         severity: "error",
@@ -214,7 +203,11 @@ export const NewsitemDialog = ({ open, onClose, newsitem, onEdited }: Props) => 
           </Button>
           {newsitem ? (
             <>
-              <Button color="error" onClick={() => handleDelete(newsitem.id)} variant="outlined">
+              <Button
+                color="error"
+                onClick={() => handleDelete(newsitem.id, currItemHasImage)}
+                variant="outlined"
+              >
                 Verwijderen
               </Button>
               <Button

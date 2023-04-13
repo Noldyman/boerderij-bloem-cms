@@ -1,8 +1,6 @@
 import { useState, useEffect, ChangeEvent } from "react";
 import { useSetRecoilState } from "recoil";
 import { notificationState } from "../../services/notifications";
-import { storage } from "../../app/firebase";
-import { deleteObject, getDownloadURL, listAll, ref, uploadBytes } from "firebase/storage";
 import { AppCard } from "./AppCard";
 import {
   Button,
@@ -15,11 +13,8 @@ import {
 } from "@mui/material";
 import { Delete } from "@mui/icons-material";
 import { CropImageDialog } from "../CropImageDialog";
-
-export interface CoverPhoto {
-  id: string;
-  imgUrl: string;
-}
+import { deleteImage, getCoverImageUrls, postImage } from "../../services/imageService";
+import { Image } from "../../models/images";
 
 interface Props {
   page: string;
@@ -27,7 +22,7 @@ interface Props {
 
 export const CoverPhotosCard = ({ page }: Props) => {
   const setNotification = useSetRecoilState(notificationState);
-  const [coverPhotos, setCoverPhotos] = useState<CoverPhoto[]>([]);
+  const [conerImageUrls, setCoverImageUrls] = useState<Image[]>([]);
   const [coverPhotosLoading, setCoverPhotosLoading] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<File | undefined>();
   const [cropImageLoading, setCropImageLoading] = useState(false);
@@ -36,26 +31,18 @@ export const CoverPhotosCard = ({ page }: Props) => {
     const fetchCoverPhotos = async () => {
       setCoverPhotosLoading(true);
       try {
-        const listRef = ref(storage, `images/coverphotos/${page}`);
-        const res = await listAll(listRef);
-
-        const newCoverPhotos = await Promise.all(
-          res.items.map(async (item) => {
-            const id = item.name;
-            const imgRef = ref(storage, item.fullPath);
-            const imgUrl = await getDownloadURL(imgRef);
-
-            return { id, imgUrl };
-          })
-        );
-        setCoverPhotos(newCoverPhotos);
-      } catch (error) {
-        console.log(error);
+        const newCoverImageUrls = await getCoverImageUrls(page);
+        setCoverImageUrls(newCoverImageUrls);
+      } catch (_) {
+        setNotification({
+          message: "Het is niet gelukt om een connectie met de database te maken",
+          severity: "error",
+        });
       }
       setCoverPhotosLoading(false);
     };
     fetchCoverPhotos();
-  }, [page]);
+  }, [page, setNotification]);
 
   const handleSelectCoverPhoto = (e: ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
@@ -67,14 +54,10 @@ export const CoverPhotosCard = ({ page }: Props) => {
 
   const handleDeleteCoverPhoto = async (id: string) => {
     try {
-      const imgRef = ref(storage, `images/coverphotos/${page}/${id}`);
-      await deleteObject(imgRef).catch((err) => {
-        if (!err.message.includes("storage/object-not-found")) throw Error(err);
-      });
-      setCoverPhotos((prevValue) => prevValue.filter((p) => p.id !== id));
+      await deleteImage(`coverphotos${page}`, id);
+      setCoverImageUrls((prevValue) => prevValue.filter((p) => p.id !== id));
       setNotification({ message: "De foto is verwijderd", severity: "success" });
-    } catch (error) {
-      console.log(error);
+    } catch (_) {
       setNotification({
         message: "Het is niet gelukt om de foto te verwijderen",
         severity: "error",
@@ -84,17 +67,12 @@ export const CoverPhotosCard = ({ page }: Props) => {
 
   const handleImageUpload = async (blob: Blob) => {
     setCropImageLoading(true);
-    const id = crypto.randomUUID();
-    const imgRef = ref(storage, `images/coverphotos/${page}/${id}`);
-    const imgUrl = URL.createObjectURL(blob);
-
     try {
-      await uploadBytes(imgRef, blob);
-      setCoverPhotos((prevValue) => [...prevValue, { id, imgUrl }]);
+      const newImage = await postImage(`coverphotos/${page}`, blob);
+      setCoverImageUrls((prevValue) => [...prevValue, { ...newImage }]);
       setImageToCrop(undefined);
       setNotification({ message: "De omslagfoto is opgeslagen", severity: "success" });
-    } catch (err) {
-      console.log(err);
+    } catch (_) {
       setNotification({
         message: "Het is niet gelukt om de omslagfoto op te slaan",
         severity: "error",
@@ -112,7 +90,7 @@ export const CoverPhotosCard = ({ page }: Props) => {
         <CircularProgress />
       ) : (
         <ImageList className="img-list" cols={5} rowHeight={200} variant="quilted">
-          {coverPhotos.map((photo, i) => (
+          {conerImageUrls.map((photo, i) => (
             <ImageListItem key={photo.id}>
               <img src={photo.imgUrl} alt="Geen afbeelding" />
               <ImageListItemBar
@@ -131,7 +109,11 @@ export const CoverPhotosCard = ({ page }: Props) => {
         </ImageList>
       )}
       <div className="card-actions">
-        <Button variant="contained" component="label" disabled={Boolean(!(coverPhotos.length < 5))}>
+        <Button
+          variant="contained"
+          component="label"
+          disabled={Boolean(!(conerImageUrls.length < 5))}
+        >
           Omslagfoto's uploaden
           <input accept=".jpg,.png" type="file" hidden onChange={handleSelectCoverPhoto} />
         </Button>

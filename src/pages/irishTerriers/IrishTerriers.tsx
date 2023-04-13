@@ -1,7 +1,4 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs, orderBy, query } from "firebase/firestore";
-import { getDownloadURL, ref } from "firebase/storage";
-import { db, storage } from "../../app/firebase";
 import { useSetRecoilState } from "recoil";
 import { notificationState } from "../../services/notifications";
 import {
@@ -23,6 +20,7 @@ import { CoverPhotosCard } from "../../components/common/CoverPhotosCard";
 import { TerrierDialog } from "./TerrierDialog";
 import { Terrier } from "../../models/irishTerriers";
 import { format } from "date-fns";
+import { getAllTerriers } from "../../services/irishTerrierService";
 
 export const IrishTerriers = () => {
   const setNotification = useSetRecoilState(notificationState);
@@ -36,33 +34,9 @@ export const IrishTerriers = () => {
     const fetchTerriers = async () => {
       setTerriersLoading(true);
       try {
-        const querySnapshot = await getDocs(
-          query(collection(db, "terriers"), orderBy("dateOfBirth", "asc"))
-        );
-        if (!querySnapshot.empty) {
-          const newTerriers: Terrier[] = await Promise.all(
-            querySnapshot.docs.map(async (doc) => {
-              let terrier = { ...doc.data(), id: doc.id } as Terrier;
-
-              const imgRef = ref(storage, "images/terriers/" + doc.id);
-              await getDownloadURL(imgRef)
-                .then((link) => {
-                  terrier = { ...terrier, imageUrl: link };
-                })
-                .catch((err) => {
-                  if (!err.message.includes("storage/object-not-found")) throw Error(err);
-                });
-
-              return terrier;
-            })
-          );
-
-          setTerriers(newTerriers);
-        } else {
-          setTerriers([]);
-        }
-      } catch (error) {
-        console.error(error);
+        const newTerriers = await getAllTerriers();
+        setTerriers(newTerriers);
+      } catch (_) {
         setNotification({
           message: "Het is niet gelukt om een connectie met de database te maken",
           severity: "error",

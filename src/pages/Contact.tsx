@@ -1,14 +1,18 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import { useSetRecoilState } from "recoil";
 import { notificationState } from "../services/notifications";
-import { addDoc, collection, doc, getDocs, query, updateDoc } from "firebase/firestore";
-import { db } from "../app/firebase";
 import { Page } from "../components/common/Page";
 import { AppCard } from "../components/common/AppCard";
 import { TextEditCard } from "../components/common/TextEditCard";
 import { Button, TextField } from "@mui/material";
 import { validateContactDetails } from "../validation/validateContactDetails";
 import { CoverPhotosCard } from "../components/common/CoverPhotosCard";
+import { ContactDetails } from "../models/contact";
+import {
+  createContactDetails,
+  getContactInfo,
+  updateContactDetails,
+} from "../services/contactService";
 
 interface Errors {
   [key: string]: string;
@@ -24,7 +28,7 @@ const initialContactDetails = {
 };
 export const Contact = () => {
   const setNotification = useSetRecoilState(notificationState);
-  const [contactDetails, setContactDetails] = useState(initialContactDetails);
+  const [contactDetails, setContactDetails] = useState<ContactDetails>(initialContactDetails);
   const [errors, setErrors] = useState<Errors | undefined>();
   const [loading, setLoading] = useState(false);
   const [detailsDocId, setDetailsDocId] = useState("");
@@ -32,23 +36,12 @@ export const Contact = () => {
   useEffect(() => {
     const fetchContactDetails = async () => {
       try {
-        const querySnapshot = await getDocs(query(collection(db, `contactinfo`)));
-
-        if (!querySnapshot.empty) {
-          const id = querySnapshot.docs[0].id;
-          const data = querySnapshot.docs[0].data();
-          setDetailsDocId(id);
-          setContactDetails({
-            contacts: data.contacts,
-            address: data.address,
-            postalCode: data.postalCode,
-            city: data.city,
-            phoneNumber: data.phoneNumber,
-            email: data.email,
-          });
+        const response = await getContactInfo();
+        if (response) {
+          setDetailsDocId(response.id);
+          setContactDetails({ ...response.details });
         }
-      } catch (error) {
-        console.error(error);
+      } catch (_) {
         setNotification({
           message: "Het is niet gelukt om een connectie met de database te maken",
           severity: "error",
@@ -74,17 +67,13 @@ export const Contact = () => {
     }
     try {
       if (detailsDocId) {
-        await updateDoc(doc(db, `contactinfo/${detailsDocId}`), {
-          ...contactDetails,
-        });
+        await updateContactDetails(detailsDocId, contactDetails);
       } else {
-        await addDoc(collection(db, `contactinfo`), {
-          ...contactDetails,
-        });
+        const newId = await createContactDetails(contactDetails);
+        setDetailsDocId(newId);
       }
       setNotification({ message: "De contactgegevens zijn opgeslagen", severity: "success" });
-    } catch (error) {
-      console.log(error);
+    } catch (_) {
       setNotification({
         message: "Het is niet gelukt om de contactgegevens op te slaan",
         severity: "error",

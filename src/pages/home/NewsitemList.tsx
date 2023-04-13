@@ -11,8 +11,9 @@ import {
   Typography,
 } from "@mui/material";
 import { Newspaper } from "@mui/icons-material";
-import { Newsitem } from "./Home";
+
 import { format } from "date-fns";
+import { Newsitem } from "../../models/news";
 
 interface Props {
   newsitems: Newsitem[];

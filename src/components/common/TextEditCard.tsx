@@ -3,8 +3,7 @@ import { MarkdownEditor } from "./MarkdownEditor";
 import { useEffect, useState } from "react";
 import { useSetRecoilState } from "recoil";
 import { notificationState } from "../../services/notifications";
-import { addDoc, collection, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
-import { db } from "../../app/firebase";
+import { getIntroText, postTextContent, updateTextContent } from "../../services/textService";
 
 interface Props {
   title: string;
@@ -21,28 +20,18 @@ export const TextEditCard = ({ title, page, identifier }: Props) => {
   useEffect(() => {
     const fetchText = async () => {
       try {
-        const querySnapshot = await getDocs(
-          query(
-            collection(db, `texts`),
-            where("page", "==", page),
-            where("identifier", "==", identifier)
-          )
-        );
-        if (!querySnapshot.empty) {
-          const id = querySnapshot.docs[0].id;
-          const text = querySnapshot.docs[0].data().text;
-          setTextId(id);
-          setText(text);
+        const introTextContent = await getIntroText("page");
+        if (introTextContent) {
+          setTextId(introTextContent.id);
+          setText(introTextContent.text);
         }
-      } catch (error) {
-        console.error(error);
+      } catch (_) {
         setNotification({
           message: "Het is niet gelukt om een connectie met de database te maken",
           severity: "error",
         });
       }
     };
-
     fetchText();
   }, [identifier, page, setNotification]);
 
@@ -58,21 +47,12 @@ export const TextEditCard = ({ title, page, identifier }: Props) => {
     setLoading(true);
     try {
       if (textId) {
-        await updateDoc(doc(db, `texts/${textId}`), {
-          text,
-          page,
-          identifier,
-        });
+        await updateTextContent(textId, text, page, identifier);
       } else {
-        await addDoc(collection(db, `texts`), {
-          text,
-          page,
-          identifier,
-        });
+        await postTextContent(text, page, identifier);
       }
       setNotification({ message: "De aanpassingen zijn opgeslagen", severity: "success" });
-    } catch (error) {
-      console.log(error);
+    } catch (_) {
       setNotification({
         message: "Het is niet gelukt om de aanpassingen op te slaan",
         severity: "error",

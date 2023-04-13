@@ -1,9 +1,6 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import { useSetRecoilState } from "recoil";
 import { notificationState } from "../../services/notifications";
-import { addDoc, collection, deleteDoc, doc, updateDoc } from "firebase/firestore";
-import { uploadBytes, ref, deleteObject } from "firebase/storage";
-import { db, storage } from "../../app/firebase";
 import {
   Avatar,
   Button,
@@ -21,6 +18,8 @@ import { NewImage } from "../../models/images";
 import { CropImageDialog } from "../../components/CropImageDialog";
 import { validateTerrier } from "../../validation/validateTerrier";
 import { format } from "date-fns";
+import { createTerrier, deleteTerrier, updateTerrier } from "../../services/irishTerrierService";
+import { updateImage } from "../../services/imageService";
 
 interface ErrorObj {
   name?: string;
@@ -90,14 +89,7 @@ export const TerrierDialog = ({ open, onClose, terrier, onEdited }: Props) => {
 
   const handleDelete = async (id: string) => {
     try {
-      await deleteDoc(doc(db, "terriers/" + id));
-      if (newImage || imageURL) {
-        const imgRef = ref(storage, "images/terriers/" + id);
-        await deleteObject(imgRef).catch((err) => {
-          if (!err.message.includes("storage/object-not-found")) throw Error(err);
-        });
-      }
-
+      await deleteTerrier(id);
       setNotification({ message: "De Ierse terriër is verwijderd", severity: "success" });
       handleClose(true);
     } catch (error) {
@@ -114,30 +106,20 @@ export const TerrierDialog = ({ open, onClose, terrier, onEdited }: Props) => {
     setErrors(undefined);
     setErrors(undefined);
     let errors = await validateTerrier(input);
-    if (!newImage) {
+    if (!newImage && !imageURL) {
       if (!errors) errors = { image: "Een afbeelding is verplicht" };
       else errors["image"] = "Een afbeelding is verplicht";
     }
-
     if (errors) {
       setLoading(false);
       return setErrors(errors);
     }
+
     try {
-      await updateDoc(doc(db, "terriers/" + id), {
-        ...input,
-        dateOfBirth: new Date(input.dateOfBirth),
-      });
-
-      const imgRef = ref(storage, "images/terriers/" + id);
+      await updateTerrier(id, input);
       if (newImage) {
-        await uploadBytes(imgRef, newImage.blob);
-      } else if (!imageURL) {
-        await deleteObject(imgRef).catch((err) => {
-          if (!err.message.includes("storage/object-not-found")) throw Error(err);
-        });
+        await updateImage("terriers", newImage.blob, id);
       }
-
       setNotification({ message: "De Ierse terriër is aangepast", severity: "success" });
       handleClose(true);
     } catch (error) {
@@ -158,26 +140,17 @@ export const TerrierDialog = ({ open, onClose, terrier, onEdited }: Props) => {
       if (!errors) errors = { image: "Een afbeelding is verplicht" };
       else errors["image"] = "Een afbeelding is verplicht";
     }
-
     if (errors) {
       setLoading(false);
       return setErrors(errors);
     }
 
     try {
-      const docRef = await addDoc(collection(db, "terriers"), {
-        ...input,
-        dateOfBirth: new Date(input.dateOfBirth),
-      });
-      if (newImage) {
-        const storageRef = ref(storage, "images/terriers/" + docRef.id);
-        await uploadBytes(storageRef, newImage.blob);
-      }
-
+      const newId = await createTerrier(input);
+      await updateImage("terriers", newImage!.blob, newId);
       setNotification({ message: "De Ierse terriër toegevoegd", severity: "success" });
       handleClose(true);
-    } catch (error) {
-      console.log(error);
+    } catch (_) {
       setNotification({
         message: "Het is niet gelukt om de Ierse terriër toe te voegen",
         severity: "error",

@@ -7,3 +7,9 @@ export interface Terrier {
   description: string;
   imageUrl?: string;
 }
+
+export interface TerrierInput {
+  name: string;
+  dateOfBirth: string;
+  description: string;
+}
