@@ -54,7 +54,7 @@ export const CoverPhotosCard = ({ page }: Props) => {
 
   const handleDeleteCoverPhoto = async (id: string) => {
     try {
-      await deleteImage(`coverphotos${page}`, id);
+      await deleteImage(`coverphotos/${page}`, id);
       setCoverImageUrls((prevValue) => prevValue.filter((p) => p.id !== id));
       setNotification({ message: "De foto is verwijderd", severity: "success" });
     } catch (_) {
@@ -93,6 +93,7 @@ export const CoverPhotosCard = ({ page }: Props) => {
           {conerImageUrls.map((photo, i) => (
             <ImageListItem key={photo.id}>
               <img src={photo.imgUrl} alt="Geen afbeelding" />
+
               <ImageListItemBar
                 title={"Omslagfoto " + (i + 1)}
                 actionIcon={

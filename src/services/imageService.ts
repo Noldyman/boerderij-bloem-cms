@@ -1,6 +1,7 @@
 import { deleteObject, getDownloadURL, listAll, ref, uploadBytes } from "firebase/storage";
 import { storage } from "../app/firebase";
 import { Image } from "../models/images";
+import Compressor from "compressorjs";
 
 export const getCoverImageUrls = async (page: string): Promise<Image[]> => {
   const listRef = ref(storage, `images/coverphotos/${page}`);
@@ -25,10 +26,18 @@ export const getImageUrl = async (dir: string, id: string) => {
 
 export const postImage = async (dir: string, blob: Blob): Promise<Image> => {
   const id = crypto.randomUUID();
+  let imgUrl = "";
+  const compressedBlob = await compressImage(blob);
   const imgRef = ref(storage, `images/${dir}/${id}`);
-  await uploadBytes(imgRef, blob);
-  const imgUrl = URL.createObjectURL(blob);
+  uploadBytes(imgRef, compressedBlob);
+  imgUrl = URL.createObjectURL(compressedBlob);
   return { id, imgUrl };
+};
+
+export const updateImage = async (dir: string, blob: Blob, id: string) => {
+  const compressedBlob = await compressImage(blob);
+  const imgRef = ref(storage, `images/${dir}/${id}`);
+  await uploadBytes(imgRef, compressedBlob);
 };
 
 export const deleteImage = async (dir: string, id: string) => {
@@ -38,7 +47,17 @@ export const deleteImage = async (dir: string, id: string) => {
   });
 };
 
-export const updateImage = async (dir: string, blob: Blob, id: string) => {
-  const imgRef = ref(storage, `images/${dir}/${id}`);
-  await uploadBytes(imgRef, blob);
-};
+const compressImage = async (blob: Blob): Promise<Blob> =>
+  new Promise((res, rej) => {
+    new Compressor(blob, {
+      convertSize: 75000,
+      quality: 0.1,
+      retainExif: false,
+      success(result) {
+        res(result);
+      },
+      error(err) {
+        rej(new Error(err.message));
+      },
+    });
+  });

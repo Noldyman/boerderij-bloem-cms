@@ -20,7 +20,7 @@ export const TextEditCard = ({ title, page, identifier }: Props) => {
   useEffect(() => {
     const fetchText = async () => {
       try {
-        const introTextContent = await getIntroText("page");
+        const introTextContent = await getIntroText(page);
         if (introTextContent) {
           setTextId(introTextContent.id);
           setText(introTextContent.text);
