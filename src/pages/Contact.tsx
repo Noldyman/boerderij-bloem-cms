@@ -3,7 +3,7 @@ import { useSetRecoilState } from "recoil";
 import { notificationState } from "../services/notifications";
 import { Page } from "../components/common/Page";
 import { AppCard } from "../components/common/AppCard";
-import { TextEditCard } from "../components/common/TextEditCard";
+import { IntroTextCard } from "../components/common/IntroTextCard";
 import { Button, TextField } from "@mui/material";
 import { validateContactDetails } from "../validation/validateContactDetails";
 import { CoverPhotosCard } from "../components/common/CoverPhotosCard";
@@ -84,7 +84,7 @@ export const Contact = () => {
 
   return (
     <Page title="Contact">
-      <TextEditCard title="Introductietekst" page="contact" identifier="intro" />
+      <IntroTextCard page="contact" />
       <CoverPhotosCard page="contact" />
       <AppCard title="Contactgegevens">
         <div className="small-card-content">

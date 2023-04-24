@@ -15,12 +15,13 @@ import {
 import { Pets } from "@mui/icons-material";
 import { Page } from "../../components/common/Page";
 import { AppCard } from "../../components/common/AppCard";
-import { TextEditCard } from "../../components/common/TextEditCard";
+import { IntroTextCard } from "../../components/common/IntroTextCard";
 import { CoverPhotosCard } from "../../components/common/CoverPhotosCard";
 import { TerrierDialog } from "./TerrierDialog";
 import { Terrier } from "../../models/irishTerriers";
 import { format } from "date-fns";
 import { getAllTerriers } from "../../services/irishTerrierService";
+import { SiteInformation } from "../../components/common/siteInformation/SiteInformation";
 
 export const IrishTerriers = () => {
   const setNotification = useSetRecoilState(notificationState);
@@ -67,7 +68,7 @@ export const IrishTerriers = () => {
 
   return (
     <Page title="Ierse terriërs">
-      <TextEditCard title="Introductietekst" identifier="intro" page="irishTerriers" />
+      <IntroTextCard page="irishTerriers" />
       <CoverPhotosCard page="irishTerriers" />
       <AppCard title="De terriërs">
         {terriersLoading ? (
@@ -104,6 +105,7 @@ export const IrishTerriers = () => {
           </Button>
         </div>
       </AppCard>
+      <SiteInformation page="irishTerriers" />
       <TerrierDialog
         open={terrierDialogIsOpen}
         onClose={handleCloseTerrierDialog}

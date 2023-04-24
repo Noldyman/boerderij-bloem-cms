@@ -5,7 +5,7 @@ import { Button, CircularProgress, Typography } from "@mui/material";
 import { Page } from "../../components/common/Page";
 import { NewsitemDialog } from "./NewsitemDialog";
 import { NewsitemList } from "./NewsitemList";
-import { TextEditCard } from "../../components/common/TextEditCard";
+import { IntroTextCard } from "../../components/common/IntroTextCard";
 import { AppCard } from "../../components/common/AppCard";
 import { CoverPhotosCard } from "../../components/common/CoverPhotosCard";
 import { Newsitem } from "../../models/news";
@@ -63,7 +63,7 @@ export const Home = () => {
 
   return (
     <Page title="Home">
-      <TextEditCard title="Introductietekst" identifier="intro" page="home" />
+      <IntroTextCard page="home" />
       <CoverPhotosCard page="home" />
       <AppCard title="Nieuwsitems">
         <Typography>Voeg een nieuwsitem toe, of klik op een item om het te bewerken.</Typography>

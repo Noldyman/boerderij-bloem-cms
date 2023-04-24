@@ -38,11 +38,21 @@
   text-align: center;
 }
 
+.loader-div {
+  width: fit-content;
+  margin: auto;
+}
+
 .card {
   padding: 20px;
 }
 
+.card-with-loader {
+  padding-bottom: 16px;
+}
+
 .card-content {
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -128,4 +138,29 @@
 
 .loader-placeholder {
   height: 4px;
+}
+
+.site-information {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-content: end;
+}
+
+.site-information-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.info-card-content {
+  display: flex;
+  gap: 10px;
+}
+
+.info-card-image {
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  width: 100%;
+  max-width: 400px;
+  padding: 0px;
 }

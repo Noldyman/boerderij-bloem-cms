@@ -1,17 +1,16 @@
-import { Button, Card, CircularProgress, Typography } from "@mui/material";
+import { Button, LinearProgress } from "@mui/material";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { useEffect, useState } from "react";
 import { useSetRecoilState } from "recoil";
 import { notificationState } from "../../services/notifications";
 import { getIntroText, postTextContent, updateTextContent } from "../../services/textService";
+import { AppCard } from "./AppCard";
 
 interface Props {
-  title: string;
   page: string;
-  identifier: string;
 }
 
-export const TextEditCard = ({ title, page, identifier }: Props) => {
+export const IntroTextCard = ({ page }: Props) => {
   const setNotification = useSetRecoilState(notificationState);
   const [text, setText] = useState("");
   const [textId, setTextId] = useState("");
@@ -33,7 +32,7 @@ export const TextEditCard = ({ title, page, identifier }: Props) => {
       }
     };
     fetchText();
-  }, [identifier, page, setNotification]);
+  }, [page, setNotification]);
 
   const handleChange = (input?: string) => {
     setText(input ? input : "");
@@ -47,9 +46,9 @@ export const TextEditCard = ({ title, page, identifier }: Props) => {
     setLoading(true);
     try {
       if (textId) {
-        await updateTextContent(textId, text, page, identifier);
+        await updateTextContent(textId, text, page, "intro");
       } else {
-        await postTextContent(text, page, identifier);
+        await postTextContent(text, page, "intro");
       }
       setNotification({ message: "De aanpassingen zijn opgeslagen", severity: "success" });
     } catch (_) {
@@ -62,19 +61,17 @@ export const TextEditCard = ({ title, page, identifier }: Props) => {
   };
 
   return (
-    <Card className="card" variant="outlined">
-      <div className="card-content">
-        <Typography variant="h6">{title}</Typography>
-        {loading ? <CircularProgress /> : <MarkdownEditor value={text} onChange={handleChange} />}
-        <div className="card-actions">
-          <Button onClick={handleClear} disabled={loading || !text} variant="outlined">
-            Leeg veld
-          </Button>
-          <Button onClick={handleSubmit} disabled={loading || !text} variant="contained">
-            Opslaan
-          </Button>
-        </div>
+    <AppCard title="Introductietekst" hasLoader>
+      <MarkdownEditor value={text} onChange={handleChange} />
+      <div className="card-actions">
+        <Button onClick={handleClear} disabled={loading || !text} variant="outlined">
+          Leeg veld
+        </Button>
+        <Button onClick={handleSubmit} disabled={loading || !text} variant="contained">
+          Opslaan
+        </Button>
       </div>
-    </Card>
+      {loading ? <LinearProgress /> : <div className="loader-placeholder" />}
+    </AppCard>
   );
 };
