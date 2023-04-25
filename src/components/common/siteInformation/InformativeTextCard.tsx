@@ -9,6 +9,7 @@ import { updateImage } from "../../../services/imageService";
 import { useSetRecoilState } from "recoil";
 import { notificationState } from "../../../services/notifications";
 import { InformativeText } from "../../../models/texts";
+import useWindowDimensions from "../../../utils/useWindowDimensions";
 
 interface Props {
   item: InformativeText;
@@ -30,6 +31,7 @@ export const InformativeTextCard = ({
   onDelete,
 }: Props) => {
   const setNotification = useSetRecoilState(notificationState);
+  const windowDimensions = useWindowDimensions();
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState(item.title);
   const [text, setText] = useState(item.text);
@@ -120,14 +122,24 @@ export const InformativeTextCard = ({
 
   return (
     <AppCard title="Informatieve tekst" hasLoader>
-      <div className="info-card-content">
-        <div className="card-content">
+      <div
+        className={`info-card-content ${
+          windowDimensions && windowDimensions.width < 700 && "info-card-content-wrap"
+        }`}
+      >
+        <div className="card-content ">
           <TextField label="Titel" size="small" value={title} onChange={handleChangeTitle} />
           <MarkdownEditor value={text} onChange={handleChangeText} />
         </div>
-        <div className="info-card-image">
-          <img width="100%" src={imageSource()} alt="Geen afbeelding" />
-        </div>
+        {!item.imageUrl && !newImage ? (
+          <div className="info-card-image info-card-image-empty">
+            <Typography align="center" fontStyle="italic">
+              Geen afbeelding geselecteerd
+            </Typography>
+          </div>
+        ) : (
+          <img className="info-card-image" src={imageSource()} alt="Geen afbeelding" />
+        )}
       </div>
       {error && <Typography color="error">{error}</Typography>}
       <div className="card-actions">

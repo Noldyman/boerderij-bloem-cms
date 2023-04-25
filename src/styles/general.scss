@@ -144,7 +144,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  align-content: end;
+  align-content: flex-end;
 }
 
 .site-information-actions {
@@ -155,12 +155,22 @@
 .info-card-content {
   display: flex;
   gap: 10px;
+  align-items: center;
+}
+
+.info-card-content-wrap {
+  flex-wrap: wrap-reverse;
+  justify-content: center;
+  gap: 15px;
 }
 
 .info-card-image {
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  border-radius: 3px;
   width: 100%;
-  max-width: 400px;
-  padding: 0px;
+  max-width: 325px;
+  height: fit-content;
+}
+
+.info-card-image-empty {
+  border: solid 1px rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
 }
