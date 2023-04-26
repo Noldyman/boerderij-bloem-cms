@@ -1,11 +1,23 @@
-export interface TextContent {
-  id: string;
+export interface IntroTextInput {
   text: string;
+  page: string;
+}
+
+export interface IntroText extends IntroTextInput {
+  id: string;
 }
 
 export interface InformativeText {
-  id?: string;
   title: string;
   text: string;
-  imageUrl?: string;
+  imageId: string;
+}
+
+export interface InformativeTextCollectionInput {
+  page: string;
+  infoTexts: InformativeText[];
+}
+
+export interface InformativeTextCollection extends InformativeTextCollectionInput {
+  id: string;
 }

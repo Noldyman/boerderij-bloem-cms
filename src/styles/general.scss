@@ -168,6 +168,8 @@
   width: 100%;
   max-width: 325px;
   height: fit-content;
+  display: flex;
+  justify-content: center;
 }
 
 .info-card-image-empty {

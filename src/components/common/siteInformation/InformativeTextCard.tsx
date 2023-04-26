@@ -1,44 +1,58 @@
-import { Button, IconButton, LinearProgress, TextField, Tooltip, Typography } from "@mui/material";
+import {
+  Button,
+  CircularProgress,
+  IconButton,
+  LinearProgress,
+  TextField,
+  Tooltip,
+  Typography,
+} from "@mui/material";
 import { AppCard } from "../AppCard";
 import { MarkdownEditor } from "../MarkdownEditor";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { ArrowCircleDown, ArrowCircleUp } from "@mui/icons-material";
 import { CropImageDialog } from "../../CropImageDialog";
-import { postTextContent, updateTextContent } from "../../../services/textService";
-import { updateImage } from "../../../services/imageService";
-import { useSetRecoilState } from "recoil";
-import { notificationState } from "../../../services/notifications";
+import { postImage, updateImage } from "../../../services/imageService";
 import { InformativeText } from "../../../models/texts";
 import useWindowDimensions from "../../../utils/useWindowDimensions";
 
 interface Props {
   item: InformativeText;
-  page: string;
-  onMove?: (addIndex: 1 | -1) => void;
+  onMove?: (move: "up" | "down") => void;
   isFirstItem?: boolean;
   isLastItem?: boolean;
-  onNewInformation: (textId: string, newItem: InformativeText) => void;
+  onChange: (input: InformativeText, newImageUrl?: string) => void;
+  imageUrlsLoading?: boolean;
+  imageUrl: string;
   onDelete: () => void;
 }
 
 export const InformativeTextCard = ({
   item,
-  page,
   onMove,
   isFirstItem,
   isLastItem,
-  onNewInformation,
+  onChange,
+  imageUrlsLoading,
+  imageUrl,
   onDelete,
 }: Props) => {
-  const setNotification = useSetRecoilState(notificationState);
   const windowDimensions = useWindowDimensions();
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState(item.title);
   const [text, setText] = useState(item.text);
   const [imageToCrop, setImageToCrop] = useState<File>();
+
   const [newImage, setNewImage] = useState<Blob>();
   const [error, setError] = useState("");
   const itemHasBeenEdited = Boolean(title !== item.title || text !== item.text || newImage);
+  const imageDir = "informativetexts";
+
+  useEffect(() => {
+    setTitle(item.title);
+    setText(item.text);
+    setNewImage(undefined);
+  }, [item]);
 
   const handleChangeTitle = (e: ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
@@ -48,8 +62,10 @@ export const InformativeTextCard = ({
     setText(input ? input : "");
   };
 
-  const handleClearText = () => {
-    setText("");
+  const handleRestore = () => {
+    setTitle(item.title);
+    setText(item.text);
+    setNewImage(undefined);
   };
 
   const handleSelectImage = (e: ChangeEvent<HTMLInputElement>) => {
@@ -67,14 +83,14 @@ export const InformativeTextCard = ({
 
   const imageSource = () => {
     if (newImage) return URL.createObjectURL(newImage);
-    else if (item.imageUrl) return item.imageUrl;
+    else if (imageUrl) return imageUrl;
     else return "";
   };
 
   const validate = () => {
     if (!title) return "Titel is verplicht";
     else if (!text) return "Informatietekst is verplicht";
-    else if (!newImage && !item.imageUrl) return "Een afbeelding is verplicht";
+    else if (!newImage && !imageUrl) return "Een afbeelding is verplicht";
     else return "";
   };
 
@@ -84,39 +100,19 @@ export const InformativeTextCard = ({
     if (error) return setError(error);
 
     setLoading(true);
-    if (!item.id) {
-      try {
-        const newItemId = await postTextContent(text, page, "info", title);
-        if (newImage) {
-          await updateImage("info", newImage, newItemId);
-          onNewInformation(newItemId, {
-            id: newItemId,
-            title,
-            text,
-            imageUrl: URL.createObjectURL(newImage),
-          });
-          setNotification({ message: "De informatieve tekst is opgeslagen", severity: "success" });
-        }
-      } catch (err) {
-        setNotification({
-          message: "Het is niet gelukt om de informatieve tekst op te slaan",
-          severity: "error",
-        });
-      }
-    } else {
-      try {
-        await updateTextContent(item.id, text, page, "info", title);
-        if (newImage) {
-          await updateImage("info", newImage, item.id);
-        }
-        setNotification({ message: "De informatieve tekst is aangepast", severity: "success" });
-      } catch (err) {
-        setNotification({
-          message: "Het is niet gelukt om de informatieve tekst op te slaan",
-          severity: "error",
-        });
+    let imageId = item.imageId;
+    let newImageUrl = "";
+    if (newImage) {
+      if (item.imageId) {
+        await updateImage(imageDir, newImage, item.imageId);
+        newImageUrl = await URL.createObjectURL(newImage);
+      } else {
+        const { id, imgUrl } = await postImage(imageDir, newImage);
+        imageId = id;
+        newImageUrl = imgUrl;
       }
     }
+    onChange({ title, text, imageId }, newImageUrl);
     setLoading(false);
   };
 
@@ -131,7 +127,11 @@ export const InformativeTextCard = ({
           <TextField label="Titel" size="small" value={title} onChange={handleChangeTitle} />
           <MarkdownEditor value={text} onChange={handleChangeText} />
         </div>
-        {!item.imageUrl && !newImage ? (
+        {!imageUrl && imageUrlsLoading ? (
+          <div className="info-card-image">
+            <CircularProgress />
+          </div>
+        ) : !imageUrl && !newImage ? (
           <div className="info-card-image info-card-image-empty">
             <Typography align="center" fontStyle="italic">
               Geen afbeelding geselecteerd
@@ -147,14 +147,14 @@ export const InformativeTextCard = ({
           <div>
             <Tooltip title="Verplaats naar onder">
               <span>
-                <IconButton color="primary" disabled={isLastItem} onClick={() => onMove(1)}>
+                <IconButton color="primary" disabled={isLastItem} onClick={() => onMove("down")}>
                   <ArrowCircleDown />
                 </IconButton>
               </span>
             </Tooltip>
             <Tooltip title="Verplaats naar boven">
               <span>
-                <IconButton color="primary" disabled={isFirstItem} onClick={() => onMove(-1)}>
+                <IconButton color="primary" disabled={isFirstItem} onClick={() => onMove("up")}>
                   <ArrowCircleUp />
                 </IconButton>
               </span>
@@ -168,8 +168,8 @@ export const InformativeTextCard = ({
           Foto uploaden
           <input accept=".jpg,.png" type="file" hidden onChange={handleSelectImage} />
         </Button>
-        <Button onClick={handleClearText} disabled={loading || !text} variant="outlined">
-          Leeg veld
+        <Button onClick={handleRestore} disabled={loading || !itemHasBeenEdited} variant="outlined">
+          Herstel
         </Button>
         <Button onClick={handleSubmit} disabled={loading || !itemHasBeenEdited} variant="contained">
           Opslaan

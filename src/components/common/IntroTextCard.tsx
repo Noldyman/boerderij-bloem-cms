@@ -3,8 +3,10 @@ import { MarkdownEditor } from "./MarkdownEditor";
 import { useEffect, useState } from "react";
 import { useSetRecoilState } from "recoil";
 import { notificationState } from "../../services/notifications";
-import { getIntroText, postTextContent, updateTextContent } from "../../services/textService";
+// import { getIntroText, postTextContent, updateTextContent } from "../../services/textService";
 import { AppCard } from "./AppCard";
+import { getIntroText, postIntroText, updateIntroText } from "../../services/introTextService";
+import { IntroText } from "../../models/texts";
 
 interface Props {
   page: string;
@@ -12,21 +14,23 @@ interface Props {
 
 export const IntroTextCard = ({ page }: Props) => {
   const setNotification = useSetRecoilState(notificationState);
-  const [text, setText] = useState("");
+  const [lastSavedIntroText, setLastSavedIntroText] = useState<IntroText>();
   const [textId, setTextId] = useState("");
+  const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchText = async () => {
       try {
-        const introTextContent = await getIntroText(page);
-        if (introTextContent) {
-          setTextId(introTextContent.id);
-          setText(introTextContent.text);
+        const introText = await getIntroText(page);
+        if (introText) {
+          setLastSavedIntroText({ ...introText });
+          setText(introText.text);
+          setTextId(introText.id);
         }
       } catch (_) {
         setNotification({
-          message: "Het is niet gelukt om een connectie met de database te maken",
+          message: "Het is niet gelukt om de introductietekst op te halen",
           severity: "error",
         });
       }
@@ -42,13 +46,28 @@ export const IntroTextCard = ({ page }: Props) => {
     setText("");
   };
 
+  const handleRestore = () => {
+    if (!lastSavedIntroText?.text) return;
+    setText(lastSavedIntroText.text);
+  };
+
+  const restoreIsDisabled = () => {
+    return Boolean(loading || lastSavedIntroText?.text === text);
+  };
+  const saveIsDisabled = () => {
+    return Boolean(loading || !text || lastSavedIntroText?.text === text);
+  };
+
   const handleSubmit = async () => {
     setLoading(true);
     try {
       if (textId) {
-        await updateTextContent(textId, text, page, "intro");
+        await updateIntroText(textId, { text, page });
+        setLastSavedIntroText({ id: textId, text, page });
       } else {
-        await postTextContent(text, page, "intro");
+        const newId = await postIntroText({ text, page });
+        setTextId(newId);
+        setLastSavedIntroText({ id: newId, text, page });
       }
       setNotification({ message: "De aanpassingen zijn opgeslagen", severity: "success" });
     } catch (_) {
@@ -67,7 +86,10 @@ export const IntroTextCard = ({ page }: Props) => {
         <Button onClick={handleClear} disabled={loading || !text} variant="outlined">
           Leeg veld
         </Button>
-        <Button onClick={handleSubmit} disabled={loading || !text} variant="contained">
+        <Button onClick={handleRestore} disabled={restoreIsDisabled()} variant="outlined">
+          Herstel
+        </Button>
+        <Button onClick={handleSubmit} disabled={saveIsDisabled()} variant="contained">
           Opslaan
         </Button>
       </div>

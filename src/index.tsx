@@ -15,27 +15,27 @@ import reportWebVitals from "./reportWebVitals";
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 root.render(
-  <React.StrictMode>
-    <RecoilRoot>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<App />}>
-            <Route element={<ProtectedRoute userForbidden />}>
-              <Route path="login" element={<Login />} />
-              <Route path="reset-password" element={<ResetPassword />} />
-            </Route>
-            <Route element={<ProtectedRoute userRequired />}>
-              <Route index element={<Home />} />
-              <Route path="/ierse-terriers" element={<IrishTerriers />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/account" element={<Account />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
+  // <React.StrictMode>
+  <RecoilRoot>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<App />}>
+          <Route element={<ProtectedRoute userForbidden />}>
+            <Route path="login" element={<Login />} />
+            <Route path="reset-password" element={<ResetPassword />} />
           </Route>
-        </Routes>
-      </BrowserRouter>
-    </RecoilRoot>
-  </React.StrictMode>
+          <Route element={<ProtectedRoute userRequired />}>
+            <Route index element={<Home />} />
+            <Route path="/ierse-terriers" element={<IrishTerriers />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/account" element={<Account />} />
+          </Route>
+          <Route path="*" element={<NotFound />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  </RecoilRoot>
+  // </React.StrictMode>
 );
 
 reportWebVitals();
