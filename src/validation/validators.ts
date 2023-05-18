@@ -68,7 +68,7 @@ export const phoneNumber = yup
   )
   .required("Telefoonnummer is verplicht");
 
-export const terrierName = yup
+export const dogName = yup
   .string()
   .max(50, "Max 50 karakters toegestaan")
   .required("Naam is verplicht");

@@ -13,12 +13,12 @@ import {
 } from "@mui/material";
 import { Delete, PhotoCamera } from "@mui/icons-material";
 import { InputDialog } from "../../components/InputDialog";
-import { Terrier } from "../../models/irishTerriers";
+import { Dog } from "../../models/dogKennel";
 import { NewImage } from "../../models/images";
 import { CropImageDialog } from "../../components/CropImageDialog";
-import { validateTerrier } from "../../validation/validateTerrier";
+import { validateDog } from "../../validation/validateDog";
 import { format } from "date-fns";
-import { createTerrier, deleteTerrier, updateTerrier } from "../../services/irishTerrierService";
+import { createDog, deleteDog, updateDog } from "../../services/dogService";
 import { updateImage } from "../../services/imageService";
 
 interface ErrorObj {
@@ -31,13 +31,14 @@ interface ErrorObj {
 interface Props {
   open: boolean;
   onClose: () => void;
-  terrier?: Terrier;
+  dog?: Dog;
   onEdited: () => void;
+  directory: string;
 }
 
 const initialInput = { name: "", dateOfBirth: "", description: "" };
 
-export const TerrierDialog = ({ open, onClose, terrier, onEdited }: Props) => {
+export const DogDialog = ({ open, onClose, dog, onEdited, directory }: Props) => {
   const setNotification = useSetRecoilState(notificationState);
   const [input, setInput] = useState(initialInput);
   const [errors, setErrors] = useState<ErrorObj | undefined>();
@@ -47,15 +48,15 @@ export const TerrierDialog = ({ open, onClose, terrier, onEdited }: Props) => {
   const [imageToCrop, setImageToCrop] = useState<File | undefined>();
 
   useEffect(() => {
-    if (terrier) {
+    if (dog) {
       setInput({
-        name: terrier.name,
-        dateOfBirth: format(terrier.dateOfBirth.toDate(), "yyyy-MM-dd"),
-        description: terrier.description,
+        name: dog.name,
+        dateOfBirth: format(dog.dateOfBirth.toDate(), "yyyy-MM-dd"),
+        description: dog.description,
       });
-      setImageURL(terrier.imageUrl);
+      setImageURL(dog.imageUrl);
     }
-  }, [terrier]);
+  }, [dog]);
 
   const handleClose = (edited?: boolean) => {
     setInput(initialInput);
@@ -89,13 +90,13 @@ export const TerrierDialog = ({ open, onClose, terrier, onEdited }: Props) => {
 
   const handleDelete = async (id: string) => {
     try {
-      await deleteTerrier(id);
-      setNotification({ message: "De Ierse terriër is verwijderd", severity: "success" });
+      await deleteDog(id, directory);
+      setNotification({ message: "De hond is verwijderd", severity: "success" });
       handleClose(true);
     } catch (error) {
       console.log(error);
       setNotification({
-        message: "Het is niet gelukt om de Ierse terriër te verwijderen",
+        message: "Het is niet gelukt om de hond te verwijderen",
         severity: "error",
       });
     }
@@ -105,7 +106,7 @@ export const TerrierDialog = ({ open, onClose, terrier, onEdited }: Props) => {
     setLoading(true);
     setErrors(undefined);
     setErrors(undefined);
-    let errors = await validateTerrier(input);
+    let errors = await validateDog(input);
     if (!newImage && !imageURL) {
       if (!errors) errors = { image: "Een afbeelding is verplicht" };
       else errors["image"] = "Een afbeelding is verplicht";
@@ -116,16 +117,16 @@ export const TerrierDialog = ({ open, onClose, terrier, onEdited }: Props) => {
     }
 
     try {
-      await updateTerrier(id, input);
+      await updateDog(id, input, directory);
       if (newImage) {
-        await updateImage("terriers", newImage.blob, id);
+        await updateImage(directory, newImage.blob, id);
       }
-      setNotification({ message: "De Ierse terriër is aangepast", severity: "success" });
+      setNotification({ message: "De hond is aangepast", severity: "success" });
       handleClose(true);
     } catch (error) {
       console.log(error);
       setNotification({
-        message: "Het is niet gelukt om de Ierse terriër aan te passen",
+        message: "Het is niet gelukt om de hond aan te passen",
         severity: "error",
       });
     }
@@ -135,7 +136,7 @@ export const TerrierDialog = ({ open, onClose, terrier, onEdited }: Props) => {
   const handleSubmit = async () => {
     setLoading(true);
     setErrors(undefined);
-    let errors = await validateTerrier(input);
+    let errors = await validateDog(input);
     if (!newImage) {
       if (!errors) errors = { image: "Een afbeelding is verplicht" };
       else errors["image"] = "Een afbeelding is verplicht";
@@ -146,8 +147,8 @@ export const TerrierDialog = ({ open, onClose, terrier, onEdited }: Props) => {
     }
 
     try {
-      const newId = await createTerrier(input);
-      await updateImage("terriers", newImage!.blob, newId);
+      const newId = await createDog(input, directory);
+      await updateImage(directory, newImage!.blob, newId);
       setNotification({ message: "De Ierse terriër toegevoegd", severity: "success" });
       handleClose(true);
     } catch (_) {
@@ -163,23 +164,19 @@ export const TerrierDialog = ({ open, onClose, terrier, onEdited }: Props) => {
     <InputDialog
       open={open}
       onClose={() => handleClose()}
-      title={`Ierse terriër ${terrier ? "aanpassesn" : "toevoegen"}`}
+      title={`Ierse terriër ${dog ? "aanpassen" : "toevoegen"}`}
       loading={loading}
       actions={
         <>
           <Button onClick={() => handleClose()} variant="outlined">
             Cancel
           </Button>
-          {terrier ? (
+          {dog ? (
             <>
-              <Button color="error" onClick={() => handleDelete(terrier.id)} variant="outlined">
+              <Button color="error" onClick={() => handleDelete(dog.id)} variant="outlined">
                 Verwijderen
               </Button>
-              <Button
-                disabled={loading}
-                onClick={() => handleUpdate(terrier.id)}
-                variant="contained"
-              >
+              <Button disabled={loading} onClick={() => handleUpdate(dog.id)} variant="contained">
                 Aanpassen
               </Button>
             </>

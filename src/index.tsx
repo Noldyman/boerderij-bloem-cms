@@ -1,4 +1,3 @@
-import React from "react";
 import ReactDOM from "react-dom/client";
 import { RecoilRoot } from "recoil";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
@@ -7,7 +6,8 @@ import App from "./app/App";
 import { Login } from "./pages/Login";
 import { ResetPassword } from "./pages/ResetPassword";
 import { Home } from "./pages/home/Home";
-import { IrishTerriers } from "./pages/irishTerriers/IrishTerriers";
+import { IrishTerriers } from "./pages/IrishTerriers";
+import { SolognoteSheep } from "./pages/SolognoteSheep";
 import { Contact } from "./pages/Contact";
 import { Account } from "./pages/Account";
 import { NotFound } from "./pages/NotFound";
@@ -27,6 +27,7 @@ root.render(
           <Route element={<ProtectedRoute userRequired />}>
             <Route index element={<Home />} />
             <Route path="/ierse-terriers" element={<IrishTerriers />} />
+            <Route path="/solognote-schapen" element={<SolognoteSheep />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/account" element={<Account />} />
           </Route>

@@ -19,6 +19,7 @@ export const Home = () => {
   const [newsItemDialogIsOpen, setNewsItemDialogIsOpen] = useState(false);
   const [editNewsitem, setEditNewsitem] = useState<Newsitem | undefined>();
   const [refreshNewsitems, setRefreshNewsitems] = useState(true);
+  const pageName = "home";
 
   useEffect(() => {
     const fetchNewsitems = async () => {
@@ -63,8 +64,8 @@ export const Home = () => {
 
   return (
     <Page title="Home">
-      <IntroTextCard page="home" />
-      <CoverPhotosCard page="home" />
+      <IntroTextCard page={pageName} />
+      <CoverPhotosCard page={pageName} />
       <AppCard title="Nieuwsitems">
         <Typography>Voeg een nieuwsitem toe, of klik op een item om het te bewerken.</Typography>
         {newsitemsLoading ? (

@@ -1,6 +1,6 @@
 import { Timestamp } from "firebase/firestore";
 
-export interface Terrier {
+export interface Dog {
   id: string;
   name: string;
   dateOfBirth: Timestamp;
@@ -8,7 +8,7 @@ export interface Terrier {
   imageUrl?: string;
 }
 
-export interface TerrierInput {
+export interface DogInput {
   name: string;
   dateOfBirth: string;
   description: string;
